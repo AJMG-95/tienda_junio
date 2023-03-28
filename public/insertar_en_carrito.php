@@ -1,6 +1,4 @@
 <?php
-use App\Tablas\Articulo;
-
 session_start();
 
 require '../vendor/autoload.php';
@@ -12,26 +10,8 @@ try {
         return volver();
     }
 
-    $articulo = Articulo::obtener($id);
-
-    if ($articulo === null) {
-        return volver();
-    }
-
-    if ($articulo->getStock() <= 0) {
-        $_SESSION['error'] = 'No hay existencias suficientes';
-        return volver();
-    }
-
     $carrito = unserialize(carrito());
-    
-    $lineas = $carrito->getLineas();
-    $cant = empty($lineas) ? 0 : $lineas[$id]->getCantidad();
-
-    if ($articulo->getStock() > $cant) { 
-        $carrito->insertar($id);
-    }
-
+    $carrito->insertar($id);
     $_SESSION['carrito'] = serialize($carrito);
 } catch (ValueError $e) {
     // TODO: mostrar mensaje de error en un Alert

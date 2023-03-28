@@ -24,11 +24,7 @@
     if (isset($login, $password)) {
         if ($usuario = \App\Tablas\Usuario::comprobar($login, $password)) {
             // Loguear al usuario
-            if (!$usuario->es_valido()){              
-                $_SESSION['error'] = 'El usuario no está validado por el administrador';
-                return volver();
-            }
-            $_SESSION['login'] = serialize($usuario);  
+            $_SESSION['login'] = serialize($usuario);
             return $usuario->es_admin() ? volver_admin() : volver();
         } else {
             // Mostrar error de validación

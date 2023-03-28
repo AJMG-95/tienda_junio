@@ -9,23 +9,16 @@ class Usuario extends Modelo
 
     public $id;
     public $usuario;
-    public $valido;
 
     public function __construct(array $campos)
     {
         $this->id = $campos['id'];
         $this->usuario = $campos['usuario'];
-        $this->valido = $campos['valido'];
     }
 
     public function es_admin(): bool
     {
         return $this->usuario == 'admin';
-    }
-
-    public function es_valido(): bool
-    {
-        return $this->valido;
     }
 
     public static function esta_logueado(): bool

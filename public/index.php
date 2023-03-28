@@ -1,5 +1,4 @@
-<?php
-session_start() ?>
+<?php session_start() ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -17,56 +16,12 @@ session_start() ?>
 
     $carrito = unserialize(carrito());
 
-    $categoria = obtener_get('categoria');
-
     $pdo = conectar();
-
-    $where = [];
-    $execute = [];
-
-    if (isset($categoria) && $categoria != "") {
-        $where[] = 'id_categoria = :categoria';
-        $execute[':categoria'] = $categoria;
-    }
-
-    
-    $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where): "";
-    var_dump($where);
-    
-
-    try {
-        $sent = $pdo->query("SELECT a.*, c.id, c.categoria
-                            FROM articulos a
-                            JOIN categorias c ON c.id = a.id_categoria
-                            $where");
-        $sent->execute($execute);
-    } catch (PDOException $error) {
-        var_dump($error->getMessage());
-        exit;
-    }
-
-    $sentCat = $pdo->query('SELECT * FROM categorias ORDER BY categoria');
+    $sent = $pdo->query("SELECT * FROM articulos ORDER BY codigo");
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
         <?php require '../src/_alerts.php' ?>
-        <form action="" method="GET">
-            <fieldset class="p-6 max-w-xs min-w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                <legend>Criterios de búsqueda:</legend>
-                <label for="categoria"> Categorias:</label>
-                <select name="categoria" id="categoria">
-                    <option value=""></option>
-                    <?php foreach ($sentCat as $cat) : ?>
-                        <option value=<?= hh($cat['id']) ?> <?= ($cat['id'] == $categoria) ? 'selected' : "" ?>>
-                            <?= hh($cat['categoria']) ?>
-                        </option>
-                    <?php endforeach ?>
-                </select>
-                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buscar</button>
-            </fieldset>
-
-        </form>
-        <p></p><br>
         <div class="flex">
             <main class="flex-1 grid grid-cols-3 gap-4 justify-center justify-items-center">
                 <?php foreach ($sent as $fila) : ?>
@@ -74,22 +29,13 @@ session_start() ?>
                         <a href="#">
                             <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?></h5>
                         </a>
-                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['stock']) ?></p>
-                        <?php if (hh($fila['stock'] > 0)) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                Añadir al carrito
-                                <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </a>
-                        <?php else : ?>
-                            <a href="" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
-                                Sin existencias
-                                <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                                </svg>
-                            </a>
-                        <?php endif; ?>
+                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['descripcion']) ?></p>
+                        <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            Añadir al carrito
+                            <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </a>
                     </div>
                 <?php endforeach ?>
             </main>
@@ -103,7 +49,7 @@ session_start() ?>
                                 <th scope="col" class="py-3 px-6">Cantidad</th>
                             </thead>
                             <tbody>
-                                <?php foreach ($carrito->getLineas() as $id => $linea) : ?>
+                                <?php foreach ($carrito->getLineas() as $id => $linea): ?>
                                     <?php
                                     $articulo = $linea->getArticulo();
                                     $cantidad = $linea->getCantidad();

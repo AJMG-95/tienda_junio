@@ -36,7 +36,6 @@
     <div class="container mx-auto">
         <?php require '../../src/_menu.php' ?>
         <?php require '../../src/_alerts.php' ?>
-        <a href="usuarios.php" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900">Ver usuarios</a>
         <div class="overflow-x-auto relative mt-4">
             <table class="mx-auto text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">

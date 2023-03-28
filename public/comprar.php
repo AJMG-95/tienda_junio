@@ -25,25 +25,10 @@
         $usuario = \App\Tablas\Usuario::logueado();
         $usuario_id = $usuario->id;
         $pdo->beginTransaction();
-
-        $sent = $pdo -> prepare('SELECT *
-                                    FROM articulos
-                                    WHERE id IN (:ids)');
-        $sent -> execute([':ids' => implode(', ', $carrito->getIds())]);
-
-        foreach ($sent->fetchAll(PDO::FETCH_ASSOC) as $producto) {
-            if ($producto['stock'] < $carrito->getLinea($producto['id'])->getCantidad()) {
-                $_SESSION['error'] = 'No hay existencias suficientes para crear la factura';
-                return volver();
-            }
-
-        }
-
         $sent = $pdo->prepare('INSERT INTO facturas (usuario_id)
                                VALUES (:usuario_id)
                                RETURNING id');
         $sent->execute([':usuario_id' => $usuario_id]);
-
         $factura_id = $sent->fetchColumn();
         $lineas = $carrito->getLineas();
         $values = [];
@@ -56,22 +41,11 @@
             $execute[":c$i"] = $linea->getCantidad();
             $i++;
         }
-        $values = implode(', ', $values);
 
+        $values = implode(', ', $values);
         $sent = $pdo->prepare("INSERT INTO articulos_facturas (articulo_id, factura_id, cantidad)
                                VALUES $values");
         $sent->execute($execute);
-
-        foreach ($linea as $id => $linea) {
-            $cantidad = $linea->getCantidad();
-
-            $sent = $pdo->prepare('UPDATE articuloas
-                                    SET stock = stock - :cantidad
-                                    WHERE id = :id');
-            $sent->execute([':id' => $id, ':cantidad' => $cantidad]);
-        }
-
-
         $pdo->commit();
         $_SESSION['exito'] = 'La factura se ha creado correctamente.';
         unset($_SESSION['carrito']);
