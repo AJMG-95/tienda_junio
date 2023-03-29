@@ -8,7 +8,15 @@ CREATE TABLE articulos (
     codigo      varchar(13)   NOT NULL UNIQUE,
     descripcion varchar(255)  NOT NULL,
     precio      numeric(7, 2) NOT NULL,
-    stock       int           NOT NULL
+    stock       int           NOT NULL,
+    id_categoria bigint       NOT NULL REFERENCES categorias (id)
+);
+
+DROP TABLE IF EXISTS categorias CASCADE;
+
+CREATE TABLE categorias (
+    id          bigserial PRIMARY KEY,
+    categoria   varchar(255) UNIQUE NOT NULL
 );
 
 DROP TABLE IF EXISTS usuarios CASCADE;
@@ -39,15 +47,20 @@ CREATE TABLE articulos_facturas (
 
 -- Carga inicial de datos de prueba:
 
-INSERT INTO articulos (codigo, descripcion, precio, stock)
-    VALUES ('18273892389', 'Yogur piña', 2.50, 20),
-           ('83745828273', 'Tigretón', 1.10, 30),
-           ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15),
-           ('51786128435', 'Disco duro M2 500 GB', 180.30, 0),
-           ('83745228673', 'Chandal', 30.10, 15),
-           ('51786198495', 'Traje', 250.30, 1);
+INSERT INTO articulos (codigo, descripcion, precio, stock, id_categoria)
+    VALUES ('18273892389', 'Yogur piña', 2.50, 20, 2),
+           ('83745828273', 'Tigretón', 1.10, 30, 2),
+           ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15, 1),
+           ('51786128435', 'Disco duro M2 500 GB', 180.30, 0, 1),
+           ('83745228673', 'Chandal', 30.10, 15, 3),
+           ('51786198495', 'Traje', 250.30, 1, 3);
 
 INSERT INTO usuarios (usuario, password, validado)
     VALUES ('admin', crypt('admin', gen_salt('bf', 10)), true),
            ('pepe', crypt('pepe', gen_salt('bf', 10)), true),
            ('juan', crypt('juan', gen_salt('bf', 10)), false);
+
+INSERT INTO categorias (categoria)
+    VALUES ('Informatica'),
+            ('Alimentación'),
+            ('Ropa');
