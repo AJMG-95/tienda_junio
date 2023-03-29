@@ -1,10 +1,14 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 DROP TABLE IF EXISTS articulos CASCADE;
 
 CREATE TABLE articulos (
     id          bigserial     PRIMARY KEY,
     codigo      varchar(13)   NOT NULL UNIQUE,
     descripcion varchar(255)  NOT NULL,
-    precio      numeric(7, 2) NOT NULL
+    precio      numeric(7, 2) NOT NULL,
+    stock       int           NOT NULL
 );
 
 DROP TABLE IF EXISTS usuarios CASCADE;
@@ -12,7 +16,8 @@ DROP TABLE IF EXISTS usuarios CASCADE;
 CREATE TABLE usuarios (
     id       bigserial    PRIMARY KEY,
     usuario  varchar(255) NOT NULL UNIQUE,
-    password varchar(255) NOT NULL
+    password varchar(255) NOT NULL,
+    validado   boolean      NOT NULL
 );
 
 DROP TABLE IF EXISTS facturas CASCADE;
@@ -34,15 +39,15 @@ CREATE TABLE articulos_facturas (
 
 -- Carga inicial de datos de prueba:
 
-INSERT INTO articulos (codigo, descripcion, precio)
-    VALUES ('18273892389', 'Yogur piña', 200.50),
-           ('83745828273', 'Tigretón', 50.10),
-           ('51736128495', 'Disco duro SSD 500 GB', 150.30),
-           ('83746828273', 'Tigretón', 50.10),
-           ('51786128435', 'Disco duro SSD 500 GB', 150.30),
-           ('83745228673', 'Tigretón', 50.10),
-           ('51786198495', 'Disco duro SSD 500 GB', 150.30);
+INSERT INTO articulos (codigo, descripcion, precio, stock)
+    VALUES ('18273892389', 'Yogur piña', 2.50, 20),
+           ('83745828273', 'Tigretón', 1.10, 30),
+           ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15),
+           ('51786128435', 'Disco duro M2 500 GB', 180.30, 0),
+           ('83745228673', 'Chandal', 30.10, 15),
+           ('51786198495', 'Traje', 250.30, 1);
 
-INSERT INTO usuarios (usuario, password)
-    VALUES ('admin', crypt('admin', gen_salt('bf', 10))),
-           ('pepe', crypt('pepe', gen_salt('bf', 10)));
+INSERT INTO usuarios (usuario, password, validado)
+    VALUES ('admin', crypt('admin', gen_salt('bf', 10)), true),
+           ('pepe', crypt('pepe', gen_salt('bf', 10)), true),
+           ('juan', crypt('juan', gen_salt('bf', 10)), false);

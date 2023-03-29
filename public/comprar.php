@@ -20,11 +20,26 @@
     $carrito = unserialize(carrito());
 
     if (obtener_post('_testigo') !== null) {
-        // Crear factura
+      
         $pdo = conectar();
+        // da un error de sesion si se intentan comprar más artículos de los que hay en stock
+        $sent = $pdo->prepare('SELECT * 
+                                FROM articulos 
+                                WHERE id IN (:ids)');
+        $sent->execute([':ids' => implode(', ', $carrito->getIds())]);
+
+        foreach($sent->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+            if ($fila['stock'] < $carrito->getLinea($fila['id'])->getCantidad()){
+                $_SESSION['error'] = 'No hay existencias suficientes para crear factura la factura';
+                return volver();
+            }
+        }
+
         $usuario = \App\Tablas\Usuario::logueado();
         $usuario_id = $usuario->id;
         $pdo->beginTransaction();
+
+        // Crear factura
         $sent = $pdo->prepare('INSERT INTO facturas (usuario_id)
                                VALUES (:usuario_id)
                                RETURNING id');
@@ -46,6 +61,16 @@
         $sent = $pdo->prepare("INSERT INTO articulos_facturas (articulo_id, factura_id, cantidad)
                                VALUES $values");
         $sent->execute($execute);
+
+        // actualioza el stock tras realizar una compra
+        foreach ($lineas as $id => $linea) {
+            $cantidad = $linea->getCantidad();
+            $sent = $pdo->prepare("UPDATE articulos
+                                    SET stock = stock - :cantidad
+                                    WHERE id = :id");
+            $sent->execute([':id' => $id, ':cantidad' => $cantidad]);
+        }
+
         $pdo->commit();
         $_SESSION['exito'] = 'La factura se ha creado correctamente.';
         unset($_SESSION['carrito']);
