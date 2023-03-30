@@ -14,7 +14,6 @@ class Articulo extends Modelo
     private $precio;
     private $stock;
     private $id_categoria;
-    private $descuento;
 
     public function __construct(array $campos)
     {
@@ -24,7 +23,6 @@ class Articulo extends Modelo
         $this->precio = $campos['precio'];
         $this->stock = $campos['stock'];
         $this->id_categoria = $campos['id_categoria'];
-        $this->descuento = $campos['descuento'];
     }
 
     public static function existe(int $id, ?PDO $pdo = null): bool
@@ -55,11 +53,6 @@ class Articulo extends Modelo
     public function getId()
     {
         return $this->id;
-    }
-
-    public function getDescuento()
-    {
-        return $this->descuento;
     }
 
     public function getCategoriaNombre(PDO $pdo)
