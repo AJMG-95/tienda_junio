@@ -15,13 +15,45 @@
     require '../vendor/autoload.php';
 
     $carrito = unserialize(carrito());
-
+    
     $pdo = conectar();
-    $sent = $pdo->query("SELECT * FROM articulos ORDER BY codigo");
+
+    $categoria = obtener_get('categoria');
+    $where = [];
+    $execute = [];
+
+    if (isset($categoria) && !empty($categoria)){
+        $where[] = 'id_categoria = :id';
+        $execute[':id'] = $categoria;
+    }
+
+    $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+    $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as idcat
+                            FROM articulos a JOIN categorias c ON (a.id_categoria = c.id)
+                            $where
+                            ORDER BY codigo");
+    $sent->execute($execute);
+
+
+    $sentCat = $pdo->query("SELECT * FROM categorias ORDER BY categoria");
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
         <?php require '../src/_alerts.php' ?>
+        <form action="" method="get">
+            <fieldset>
+                <legend>Buscador</legend>
+                <select name="categoria" id="categoria">
+                    <option value=""></option>
+                    <?php foreach ($sentCat as $cat): ?>
+                        <option value="<?=hh($cat['id'])?>" <?=$cat['id'] == $categoria ? 'selected':''?>><?=hh($cat['categoria'])?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" class="btn btn-primary py-2 px-3.5 text-sm font-medium text-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">Buscar</button>
+            </fieldset>
+        </form>
+        <div><br/></div>
         <div class="flex">
             <main class="flex-1 grid grid-cols-3 gap-4 justify-center justify-items-center">
                 <?php foreach ($sent as $fila) : ?>
@@ -31,7 +63,7 @@
                         </a>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?=hh($categoria)?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Añadir al carrito
                                 <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
