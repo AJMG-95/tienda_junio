@@ -3,18 +3,18 @@
 namespace App\Tablas;
 
 use PDO;
-use App\Tablas\Categoria;
 
 class Articulo extends Modelo
 {
     protected static string $tabla = 'articulos';
 
-    public $id;
+    private $id;
     private $codigo;
     private $descripcion;
     private $precio;
     private $stock;
     private $id_categoria;
+    private $descuento;
 
     public function __construct(array $campos)
     {
@@ -24,6 +24,7 @@ class Articulo extends Modelo
         $this->precio = $campos['precio'];
         $this->stock = $campos['stock'];
         $this->id_categoria = $campos['id_categoria'];
+        $this->descuento = $campos['descuento'];
     }
 
     public static function existe(int $id, ?PDO $pdo = null): bool
@@ -51,8 +52,21 @@ class Articulo extends Modelo
         return $this->stock;
     }
 
-    public function getIdCategoria()
+    public function getId()
     {
-        return $this->id_categoria;
+        return $this->id;
     }
+
+    public function getDescuento()
+    {
+        return $this->descuento;
+    }
+
+    public function getCategoriaNombre(PDO $pdo)
+    {
+        $sent = $pdo->prepare("SELECT categoria FROM categorias WHERE id = :id_categoria");
+        $sent->execute(['id_categoria' => $this->id_categoria]);
+        return $sent->fetchColumn();
+    }
+    
 }

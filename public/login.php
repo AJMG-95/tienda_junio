@@ -23,7 +23,7 @@
 
     if (isset($login, $password)) {
         if ($usuario = \App\Tablas\Usuario::comprobar($login, $password)) {
-            if(!$usuario->validado){
+            if (!$usuario->validado) {
                 $_SESSION['error'] = 'El usuario no está validado.';
                 return volver();
             }

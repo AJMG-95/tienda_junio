@@ -1,15 +1,13 @@
 <?php
 
-namespace App\Tablas;
-
-use PDO;
+use App\Tablas\Modelo;
 
 class Categoria extends Modelo
 {
-    protected static string $tabla = 'articulos';
+    protected static string $tabla = 'categorias';
 
     public $id;
-    private $categoria;
+    public $categoria;
 
     public function __construct(array $campos)
     {
@@ -17,13 +15,11 @@ class Categoria extends Modelo
         $this->categoria = $campos['categoria'];
     }
 
-    public function getCategoria()
+    public static function obtener(int $id, ?PDO $pdo = null): ?self
     {
-        return $this->categoria;
-    }
-
-    public function getId()
-    {
-        return $this->id;
+        $sent = $pdo->prepare("SELECT * FROM categorias WHERE id = :id");
+        $sent->execute(['id' => $id]);
+        $registro = $sent->fetch();
+        return $registro ? new self($registro) : null;
     }
 }
