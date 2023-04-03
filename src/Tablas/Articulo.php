@@ -3,6 +3,7 @@
 namespace App\Tablas;
 
 use PDO;
+use App\Tablas\Etiqueta;
 
 class Articulo extends Modelo
 {
@@ -14,6 +15,7 @@ class Articulo extends Modelo
     private $precio;
     private $stock;
     private $id_categoria;
+    private Etiqueta $etiqueta;
 
     public function __construct(array $campos)
     {
@@ -23,6 +25,7 @@ class Articulo extends Modelo
         $this->precio = $campos['precio'];
         $this->stock = $campos['stock'];
         $this->id_categoria = $campos['id_categoria'];
+        $this->etiqueta = Etiqueta::obtener($campos['id']);
     }
 
     public static function existe(int $id, ?PDO $pdo = null): bool
@@ -60,6 +63,11 @@ class Articulo extends Modelo
         $sent = $pdo->prepare("SELECT categoria FROM categorias WHERE id = :id_categoria");
         $sent->execute(['id_categoria' => $this->id_categoria]);
         return $sent->fetchColumn();
+    }
+
+    public function getEtiquetas(): Etiqueta
+    {
+        return $this->etiqueta;
     }
     
 }

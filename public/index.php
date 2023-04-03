@@ -15,47 +15,68 @@
     require '../vendor/autoload.php';
     $carrito = unserialize(carrito());
 
-    $precio_min = obtener_get('precio_min');
-    $precio_max = obtener_get('precio_max');
-    $nombre = obtener_get('nombre');
     $categoria = obtener_get('categoria');
-    $visible = obtener_get('visible');
+    $etiqueta = obtener_get('etiqueta');
+
 
     $pdo = conectar();
 
-    $where = [];
-    $execute = [];
+    $idsCat = [];
+    $idsEt = [];
+    $ids = [];
 
     if (isset($categoria) && $categoria != '') {
-        $where[] = 'id_categoria = :categoria';
-        $execute[':categoria'] = $categoria;
-    }
-    if (isset($precio_min) && $precio_min != '') {
-        $where[] = '(precio - (precio * descuento / 100)) >= :precio_min';
-        $execute[':precio_min'] = $precio_min;
-    }
-    if (isset($precio_max) && $precio_max != '') {
-        $where[] = '(precio - (precio * descuento / 100)) <= :precio_max ';
-        $execute[':precio_max'] = $precio_max;
-    }
-    if (isset($nombre) && $nombre != '') {
-        $where[] = 'lower(descripcion) LIKE lower(:nombre)';
-        $execute[':nombre'] = "%$nombre%";
+        $sent = $pdo->prepare("SELECT a.id
+                                FROM articulos a
+                                JOIN categorias c ON c.id = a.id_categoria
+                                WHERE id_categoria = :categoria
+                                ORDER BY codigo");
+        $sent->execute([':categoria' => $categoria]);
+
+        foreach ($sent as $id) {
+            array_push($idsCat, $id[0]);
+        }
     }
 
-    $where = !empty($where) ?  'WHERE ' . implode(' AND ', $where) : '';
+    if (isset($etiqueta) && $etiqueta != '') {
+        $etiquetas = explode(' ', $etiqueta);
+        foreach ($etiquetas as $et) {
+            $sent = $pdo->prepare("SELECT ae.id_articulo 
+                                    FROM articulos_etiquetas ae
+                                    JOIN etiquetas e ON ae.id_etiqueta = e.id
+                                    WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
+            $sent->execute([':etiqueta' => $et]);
 
-    try {
-        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid
-                            FROM articulos a JOIN categorias c ON (c.id = a.id_categoria)
-                            $where
-                            ORDER BY codigo");
-        $sent->execute($execute);
-    } catch (PDOException $e) {
-        var_dump($e->getMessage());
-        exit;
+            foreach ($sent as $id) {
+                if (!in_array($idet, $idsEt)) {
+                    array_push($idsEt, $id[0]);
+                }
+            }
+        }
     }
-    $sentCat = $pdo->query("SELECT * FROM categorias");
+
+    if (isset($categoria, $etiqueta) && $categoria != '' && $etiqueta != '') {
+        foreach ($idsCat as $valor) {
+            if (in_array($valor, $idsEt)) {
+                $ids[] = $valor;
+            }
+        }
+        $sent = $pdo->prepare('SELECT a.*, c.categoria
+            FROM articulos a
+            JOIN categorias c ON a.id_categoria = c.id
+            WHERE a.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')');
+
+        $sent->execute($ids);
+
+        $sent = $sent->fetchAll(PDO::FETCH_ASSOC);
+
+    } else {
+        $sent = $pdo->query("SELECT a.*, c.categoria, c.id AS catid
+                                FROM articulos AS a
+                                JOIN categorias AS c ON a.id_categoria = c.id;");
+    }
+
+
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
@@ -63,20 +84,27 @@
         <div>
             <form action="" method="GET">
                 <fieldset>
-                    <legend> <b>Criterios de búsqueda </b></legend><br>
+                    <legend><b>Criterios de búsqueda</b></legend>
+                    <br>
                     <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
-                            Categoria:
+                            Categoría:
                             <select name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
                                 <?php
+                                $sent2 = $pdo->query("SELECT *
+                    FROM categorias");
                                 ?>
-                                <option value="" >Todas las categorias</option>
-                                <?php foreach ($sentCat as $cat) : ?>
-                                    <option value=<?= hh($cat['id']) ?> <?= ($cat['id'] == $categoria) ? 'selected' : '' ?>>
-                                        <?= hh($cat['categoria']) ?>
+                                <option value="">Todas las categorías</option>
+                                <?php foreach ($sent2 as $fila) : ?>
+                                    <option value=<?= hh($fila['id']) ?> <?= ($fila['id'] == $categoria) ? 'selected' : '' ?>>
+                                        <?= hh($fila['categoria']) ?>
                                     </option>
                                 <?php endforeach ?>
                             </select>
+                        </label>
+                        <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
+                            Etiquetas:
+                            <input type="text" name="etiqueta" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                     </div>
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buscar</button>
@@ -87,7 +115,8 @@
             <main class="flex-1 grid grid-cols-3 gap-4 justify-center justify-items-center">
                 <?php foreach ($sent as $fila) : ?>
                     <div class="p-6 max-w-xs min-w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?>:  </h5><h5 class="text-2xl tracking-tight mb-3 font-normal text-gray-700 dark:text-white "><?= hh($fila['precio']) ?> € </h5>
+                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?> - <?= hh($fila['precio']) ?> € </h5>
+                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['descripcion']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
@@ -122,7 +151,7 @@
                                     ?>
                                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                         <td class="py-4 px-6"><?= $articulo->getDescripcion() ?> <br>
-                                        <?= $articulo->getCategoriaNombre($pdo) ?>
+                                            <?= $articulo->getCategoriaNombre($pdo) ?>
 
                                         </td>
                                         <td class="py-4 px-6 text-center"><?= $cantidad ?></td>

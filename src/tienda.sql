@@ -2,7 +2,6 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
 DROP TABLE IF EXISTS articulos CASCADE;
-
 CREATE TABLE articulos (
     id          bigserial     PRIMARY KEY,
     codigo      varchar(13)   NOT NULL UNIQUE,
@@ -13,14 +12,26 @@ CREATE TABLE articulos (
 );
 
 DROP TABLE IF EXISTS categorias CASCADE;
-
 CREATE TABLE categorias (
     id          bigserial PRIMARY KEY,
     categoria   varchar(255) UNIQUE NOT NULL
 );
 
-DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS etiquetas CASCADE;
+CREATE TABLE etiquetas (
+    id          bigserial PRIMARY KEY,
+    etiqueta   text      NOT NULL UNIQUE
+);
 
+DROP TABLE IF EXISTS articulos_etiquetas CASCADE;
+CREATE TABLE articulos_etiquetas (
+    id_articulo bigint NOT NULL REFERENCES articulos (id),
+    id_etiqueta bigint NOT NULL REFERENCES etiquetas (id),
+    PRIMARY KEY (id_articulo, id_etiqueta)
+);
+
+
+DROP TABLE IF EXISTS usuarios CASCADE;
 CREATE TABLE usuarios (
     id       bigserial    PRIMARY KEY,
     usuario  varchar(255) NOT NULL UNIQUE,
@@ -29,7 +40,6 @@ CREATE TABLE usuarios (
 );
 
 DROP TABLE IF EXISTS facturas CASCADE;
-
 CREATE TABLE facturas (
     id         bigserial  PRIMARY KEY,
     created_at timestamp  NOT NULL DEFAULT localtimestamp(0),
@@ -37,7 +47,6 @@ CREATE TABLE facturas (
 );
 
 DROP TABLE IF EXISTS articulos_facturas CASCADE;
-
 CREATE TABLE articulos_facturas (
     articulo_id bigint NOT NULL REFERENCES articulos (id),
     factura_id  bigint NOT NULL REFERENCES facturas (id),
@@ -61,6 +70,30 @@ INSERT INTO usuarios (usuario, password, validado)
            ('juan', crypt('juan', gen_salt('bf', 10)), false);
 
 INSERT INTO categorias (categoria)
-    VALUES ('Informatica'),
+    VALUES ('Electrónica'),
             ('Alimentación'),
+            ('Ropa'),
+            ('Hogar');
+
+INSERT INTO etiquetas (etiqueta)
+    VALUES ('Electrónica'),
+            ('Hogar'),
+            ('Deporte'),
+            ('Fruta'),
+            ('Dulce'),
+            ('Alimenatción'),
+            ('Ordenadores'),
             ('Ropa');
+
+INSERT INTO articulos_etiquetas (id_articulo, id_etiqueta)
+    VALUES (1, 6),
+            (1, 4),
+            (2, 6),
+            (2, 5),
+            (3, 7),
+            (3, 1),
+            (4, 7),
+            (4, 1),
+            (5, 3),
+            (5, 8),
+            (6, 8);
