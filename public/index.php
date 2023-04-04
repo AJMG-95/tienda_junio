@@ -21,62 +21,46 @@
 
     $pdo = conectar();
 
-    $idsCat = [];
-    $idsEt = [];
+    $where = [];
+    $execute = [];
+    $idEtiquetas =  [];
     $ids = [];
 
     if (isset($categoria) && $categoria != '') {
-        $sent = $pdo->prepare("SELECT a.id
-                                FROM articulos a
-                                JOIN categorias c ON c.id = a.id_categoria
-                                WHERE id_categoria = :categoria
-                                ORDER BY codigo");
-        $sent->execute([':categoria' => $categoria]);
-
-        foreach ($sent as $id) {
-            array_push($idsCat, $id[0]);
-        }
+        $where[] = 'id_categoria = :categoria';
+        $execute[':categoria'] = $categoria;
     }
 
     if (isset($etiqueta) && $etiqueta != '') {
         $etiquetas = explode(' ', $etiqueta);
         foreach ($etiquetas as $et) {
-            $sent = $pdo->prepare("SELECT ae.id_articulo 
+            $sent = $pdo->prepare("SELECT ae.id_articulo
                                     FROM articulos_etiquetas ae
                                     JOIN etiquetas e ON ae.id_etiqueta = e.id
                                     WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
             $sent->execute([':etiqueta' => $et]);
 
             foreach ($sent as $id) {
-                if (!in_array($idet, $idsEt)) {
-                    array_push($idsEt, $id[0]);
-                }
+                array_push($idEtiquetas, $id[0]);
             }
         }
+        $idEtiquetas = implode(',', $idEtiquetas);
+        $where[] = 'ae.id_articulo IN (:id_articulo)';
+        $execute[':id_articulo'] = $idEtiquetas;
     }
 
-    if (isset($categoria, $etiqueta) && $categoria != '' && $etiqueta != '') {
-        foreach ($idsCat as $valor) {
-            if (in_array($valor, $idsEt)) {
-                $ids[] = $valor;
-            }
-        }
-        $sent = $pdo->prepare('SELECT a.*, c.categoria
-            FROM articulos a
-            JOIN categorias c ON a.id_categoria = c.id
-            WHERE a.id IN (' . implode(',', array_fill(0, count($ids), '?')) . ')');
+    $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-        $sent->execute($ids);
-
-        $sent = $sent->fetchAll(PDO::FETCH_ASSOC);
-
-    } else {
-        $sent = $pdo->query("SELECT a.*, c.categoria, c.id AS catid
-                                FROM articulos AS a
-                                JOIN categorias AS c ON a.id_categoria = c.id;");
-    }
+    $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, ae.id_etiqueta
+                            FROM articulos a
+                            JOIN categorias c ON (c.id = a.id_categoria)
+                            JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
+                            $where
+                            ORDER BY a.codigo");
+    $sent->execute($execute);
 
 
+    
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
@@ -91,8 +75,7 @@
                             Categoría:
                             <select name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
                                 <?php
-                                $sent2 = $pdo->query("SELECT *
-                    FROM categorias");
+                                $sent2 = $pdo->query("SELECT * FROM categorias");
                                 ?>
                                 <option value="">Todas las categorías</option>
                                 <?php foreach ($sent2 as $fila) : ?>
