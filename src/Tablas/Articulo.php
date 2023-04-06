@@ -65,9 +65,15 @@ class Articulo extends Modelo
         return $sent->fetchColumn();
     }
 
-    public function getEtiquetas(): Etiqueta
+    public function getEtiquetaNombre(?PDO $pdo = null)
     {
-        return $this->etiqueta;
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare("SELECT e.etiqueta 
+                                FROM etiquetas e JOIN articulos_etiquetas ae ON (e.id = ae.id_etiqueta)
+                                WHERE ae.id_articulo = :id_articulo");
+        $sent->execute(['id_articulo' => $this->id]);
+        $etiquetas = $sent->fetchAll(PDO::FETCH_COLUMN);
+        return implode(', ', $etiquetas);
     }
-    
+
 }

@@ -24,7 +24,6 @@
     $where = [];
     $execute = [];
     $idEtiquetas =  [];
-    $ids = [];
 
     if (isset($categoria) && $categoria != '') {
         $where[] = 'id_categoria = :categoria';
@@ -33,31 +32,48 @@
 
     if (isset($etiqueta) && $etiqueta != '') {
         $etiquetas = explode(' ', $etiqueta);
+
         foreach ($etiquetas as $et) {
-            $sent = $pdo->prepare("SELECT ae.id_articulo
+            $sent2 = $pdo->prepare("SELECT ae.id_articulo 
                                     FROM articulos_etiquetas ae
                                     JOIN etiquetas e ON ae.id_etiqueta = e.id
                                     WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
-            $sent->execute([':etiqueta' => $et]);
+            $sent2->execute([':etiqueta' => $et]);
 
-            foreach ($sent as $id) {
-                array_push($idEtiquetas, $id[0]);
+            foreach ($sent2 as $fila) {
+                foreach ($fila as $id) {
+                    if (!in_array($id, $idEtiquetas)){
+                        array_push($idEtiquetas, $id);
+                    }
+                    $where[] = 'ae.id_articulo = :id_articulo';
+                    $execute[':id_articulo'] = $id;
+                }
             }
+
         }
-        $idEtiquetas = implode(',', $idEtiquetas);
+
+/*         $idEtiquetas = implode(', ', $idEtiquetas);
+
         $where[] = 'ae.id_articulo IN (:id_articulo)';
-        $execute[':id_articulo'] = $idEtiquetas;
+        $execute[':id_articulo'] = $idEtiquetas; */
+
     }
 
     $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-    $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, ae.id_etiqueta
-                            FROM articulos a
-                            JOIN categorias c ON (c.id = a.id_categoria)
-                            JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
-                            $where
-                            ORDER BY a.codigo");
-    $sent->execute($execute);
+    try {
+            $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, string_agg(ae.id_etiqueta::text, ',') as etiquetas
+                                    FROM articulos a
+                                    JOIN categorias c ON (c.id = a.id_categoria)
+                                    JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
+                                    $where
+                                    GROUP BY a.id, c.categoria, c.id, a.codigo, a.descripcion, a.precio, a.stock
+                                    ORDER BY a.codigo;
+            ");
+            $sent->execute($execute);
+    } catch (\Throwable $th) {
+        echo($th);
+    }
 
 
     
@@ -99,11 +115,10 @@
                 <?php foreach ($sent as $fila) : ?>
                     <div class="p-6 max-w-xs min-w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?> - <?= hh($fila['precio']) ?> € </h5>
-                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['descripcion']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&categoria=<?= hh($etiqueta) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Añadir al carrito
                                 <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -135,6 +150,7 @@
                                     <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                                         <td class="py-4 px-6"><?= $articulo->getDescripcion() ?> <br>
                                             <?= $articulo->getCategoriaNombre($pdo) ?>
+                                            <?= $articulo->getEtiquetaNombre($pdo) ?>
 
                                         </td>
                                         <td class="py-4 px-6 text-center"><?= $cantidad ?></td>

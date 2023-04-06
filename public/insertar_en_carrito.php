@@ -7,8 +7,6 @@ session_start();
 require '../vendor/autoload.php';
 
 $categoria = obtener_get('categoria');
-$precio_min = obtener_get('precio_min');
-$precio_max = obtener_get('precio_max');
 $nombre = obtener_get('nombre');
 
 try {
@@ -62,14 +60,6 @@ try {
         
     if ($categoria !== null) {
         $params .= '&categoria=' . hh($categoria);
-    }
-
-    if ($precio_max !== null) {
-        $params .= '&precio_max=' . hh($precio_max);
-    }
-
-    if ($precio_min !== null) {
-        $params .= '&precio_min=' . hh($precio_min);
     }
 
     header("Location: /index.php?$params");

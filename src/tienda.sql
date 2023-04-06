@@ -30,6 +30,15 @@ CREATE TABLE articulos_etiquetas (
     PRIMARY KEY (id_articulo, id_etiqueta)
 );
 
+DROP TABLE IF EXISTS valoraciones CASCADE;
+CREATE TABLE valoraciones_articulos_usuarios (
+    articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
+    usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
+    valoracion  int     CHECK (valoracion >= 1 AND valoracion <= 5),
+    PRIMARY KEY (articulo_id, usuario_id)
+);
+
+
 
 DROP TABLE IF EXISTS usuarios CASCADE;
 CREATE TABLE usuarios (
