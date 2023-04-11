@@ -31,7 +31,7 @@ CREATE TABLE articulos_etiquetas (
 );
 
 DROP TABLE IF EXISTS valoraciones CASCADE;
-CREATE TABLE valoraciones_articulos_usuarios (
+CREATE TABLE valoraciones (
     articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
     usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
     valoracion  int     CHECK (valoracion >= 1 AND valoracion <= 5),

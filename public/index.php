@@ -17,6 +17,7 @@
 
     $categoria = obtener_get('categoria');
     $etiqueta = obtener_get('etiqueta');
+    $valoracion = obtener_get('valoracion');
 
 
     $pdo = conectar();
@@ -44,6 +45,7 @@
                 foreach ($fila as $id) {
                     if (!in_array($id, $idEtiquetas)){
                         array_push($idEtiquetas, $id);
+
                     }
                     $where[] = 'ae.id_articulo = :id_articulo';
                     $execute[':id_articulo'] = $id;
@@ -52,11 +54,10 @@
 
         }
 
-/*         $idEtiquetas = implode(', ', $idEtiquetas);
+        $idEtiquetas = implode(', ', $idEtiquetas);
 
-        $where[] = 'ae.id_articulo IN (:id_articulo)';
+/*         $where[] = 'ae.id_articulo IN (:id_articulo)';
         $execute[':id_articulo'] = $idEtiquetas; */
-
     }
 
     $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -129,6 +130,50 @@
                                 Sin existencias
                             </a>
                         <?php endif ?>
+                        <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
+                            <form action="valorar_articulo.php" method="GET">
+                                <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
+                                    Valoración:
+                                    <?php
+                                    $usuario = \App\Tablas\Usuario::logueado();
+                                    $id_usuario = $usuario ? $usuario->id : null;
+
+                                    $sent3 = $pdo->prepare("SELECT *
+                                                            FROM valoraciones
+                                                            WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
+                                    $sent3->execute(['id_usuario' => $id_usuario, 'id_articulo' => $fila['id']]);
+                                    $valoracion_usuario = $sent3->fetch(PDO::FETCH_ASSOC);
+                                    ?>
+                                    <select name="valoracion" id="valoracion">
+                                        <option value="" <?= (!$id_usuario) ? 'selected' : '' ?>></option>
+                                        <?php for ($i=1; $i <=5 ; $i++) : ?>
+                                            <option value="<?=$i?>" <?= ($valoracion_usuario && $valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?=$i?></option>
+                                        <?php endfor ?>
+                                    </select>
+                                </label>
+                                <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
+                                <input type="hidden" name="usuario_id" value="<?= $id_usuario ?>">
+
+                                <?php if (!\App\Tablas\Usuario::esta_logueado()) : ?>
+                                    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" disabled>Votar</button>
+                                <?php else : ?>
+                                    <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Votar</button>
+                                <?php endif ?>
+                            </form>
+                            <div>
+                                <label class="block text-m font-medium pl-3 ml-3">
+                                    Valoración media:
+                                    <?php 
+                                    $sent4 = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
+                                                            FROM valoraciones
+                                                            WHERE articulo_id = :id_articulo");
+                                    $sent4->execute(['id_articulo' => $fila['id']]);
+                                    $valoracionMedia = $sent4->fetchColumn();
+                                    ?>
+                                    <p class="mb-3 pl-3 font-normal text-gray-700 dark:text-gray-400" ><?= hh($valoracionMedia) ?></p>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 <?php endforeach ?>
             </main>
