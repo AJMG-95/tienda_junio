@@ -37,7 +37,7 @@
     }
 
     $pdo = conectar();
-    $sent = $pdo->query("SELECT * FROM articulos ORDER BY codigo");
+    $sent = $pdo->query("SELECT * FROM categorias ORDER BY categoria");
     ?>
     <div class="container mx-auto">
         <?php require '../../src/_menu.php' ?>
@@ -45,26 +45,20 @@
         <div class="overflow-x-auto relative mt-4">
             <table class="mx-auto text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                    <th scope="col" class="py-3 px-6">Código</th>
-                    <th scope="col" class="py-3 px-6">Descripción</th>
-                    <th scope="col" class="py-3 px-6">Precio</th>
-                    <th scope="col" class="py-3 px-6">Stock</th>
+                    <th scope="col" class="py-3 px-6">Categoria</th>
                     <th scope="col" class="py-3 px-6 text-center">Acciones</th>
                 </thead>
                 <tbody>
                     <?php foreach ($sent as $fila) : ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                            <td class="py-4 px-6"><?= hh($fila['codigo']) ?></td>
-                            <td class="py-4 px-6"><?= hh($fila['descripcion']) ?></td>
-                            <td class="py-4 px-6"><?= hh($fila['precio']) ?></td>
-                            <td class="py-4 px-6"><?= hh($fila['stock']) ?></td>
+                            <td class="py-4 px-6"><?= hh($fila['categoria']) ?></td>
                             <td class="px-6 text-center">
                                 <?php $fila_id = hh($fila['id']) ?>
-                                <form action="/admin/editar.php" method="POST" class="inline">
+                                <form action="/admin/editar_categoria.php" method="POST" class="inline">
                                     <input type="hidden" name="id" value="<?= $fila_id ?>">
                                     <button type="submit" onclick="cambiarModificar(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900" data-modal-toggle="popup-modal-edit">Editar</button>
                                 </form>
-                                <form action="/admin/borrar.php" method="POST" class="inline">
+                                <form action="/admin/borrar_categoria.php" method="POST" class="inline">
                                     <input type="hidden" name="id" value="<?= $fila_id ?>">
                                     <button type="submit" onclick="cambiar(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" data-modal-toggle="popup-modal-del">Borrar</button>
                                 </form>
@@ -90,7 +84,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea borrar este artículo?</h3>
-                    <form action="/admin/borrar.php" method="POST">
+                    <form action="/admin/borrar_categoria.php" method="POST">
                         <input id="oculto" type="hidden" name="id">
                         <button data-modal-toggle="popup-modal-del" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
                             Sí, seguro
@@ -116,31 +110,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                     <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea borrar este artículo?</h3>
-                    <form action="/admin/editar.php" method="POST">
+                    <form action="/admin/editar_categoria.php" method="POST">
                     
-                        <label for="codigo" class="block mb-2 text-sm font-medium">
-                            Codigo:
-                            <input type="text" name="codigo" id="codigo" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="descripcion" class="block mb-2 text-sm font-medium">
-                            Descripción:
-                            <input type="text" name="descripcion" id="descripcion" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="categoria" class="block mb-2 text-sm font-medium" >
+                        <label for="categoria" class="block mb-2 text-sm font-medium">
                             Categoria:
                             <input type="text" name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="etiquetas" class="block mb-2 text-sm font-medium">
-                            Etiquetas:
-                            <input type="text" name="etiquetas" id="etiquetas" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="precio" class="block mb-2 text-sm font-medium">
-                            Precio:
-                            <input type="number" name="precio" id="precio" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="stock" class="block mb-2 text-sm font-medium">
-                            Stock:
-                            <input type="number" name="stock" id="stock" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                         <input id="ocultoModificar" type="hidden" name="id">
                         <button data-modal-toggle="modificar" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">

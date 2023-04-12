@@ -19,6 +19,8 @@ if (!isset($id)) {
     return volver_admin();
 }
 
+
+// Toma los valores actuales del artículo
 $sent = $pdo->prepare("SELECT * FROM articulos WHERE id = :id");
 $sent->execute([':id' => $id]);
 $anterior = $sent->fetch(PDO::FETCH_ASSOC);
@@ -66,8 +68,8 @@ if (isset($stock) && $stock != '') {
 
 if (isset($categoria_nombre) && $categoria_nombre != '') {
     // Comprobar si la categoría existe
-    $sent = $pdo->prepare("SELECT * 
-                            FROM categorias 
+    $sent = $pdo->prepare("SELECT *
+                            FROM categorias
                             WHERE lower(unaccent(categoria)) LIKE lower(unaccent(:categoria))");
     $sent->execute([':categoria' => $categoria_nombre]);
     $categoria = $sent->fetch(PDO::FETCH_ASSOC);
