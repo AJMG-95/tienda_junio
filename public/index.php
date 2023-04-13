@@ -14,17 +14,16 @@
     <?php
     require '../vendor/autoload.php';
     $carrito = unserialize(carrito());
-
+    
     $categoria = obtener_get('categoria');
     $etiqueta = obtener_get('etiqueta');
     $valoracion = obtener_get('valoracion');
-
 
     $pdo = conectar();
 
     $where = [];
     $execute = [];
-    $idEtiquetas =  [];
+    $idEtiquetas = [];
 
     if (isset($categoria) && $categoria != '') {
         $where[] = 'id_categoria = :categoria';
@@ -34,50 +33,60 @@
     if (isset($etiqueta) && $etiqueta != '') {
         $etiquetas = explode(' ', $etiqueta);
 
+        $idArticulos = [];
+
         foreach ($etiquetas as $et) {
-            $sent2 = $pdo->prepare("SELECT ae.id_articulo 
-                                    FROM articulos_etiquetas ae
-                                    JOIN etiquetas e ON ae.id_etiqueta = e.id
+            $sent2 = $pdo->prepare("SELECT DISTINCT ae.id_articulo
+                                        FROM articulos_etiquetas ae
+                                        JOIN etiquetas e ON ae.id_etiqueta = e.id
                                     WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
             $sent2->execute([':etiqueta' => $et]);
+            $res = $sent2->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($sent2 as $fila) {
+            foreach ($res as $fila) {
                 foreach ($fila as $id) {
-                    if (!in_array($id, $idEtiquetas)){
-                        array_push($idEtiquetas, $id);
-
-                    }
-                    $where[] = 'ae.id_articulo = :id_articulo';
-                    $execute[':id_articulo'] = $id;
+                    $idArticulos[] = gmp_init($id);
                 }
             }
-
         }
 
-        $idEtiquetas = implode(', ', $idEtiquetas);
+        $idArticulos = array_unique($idArticulos);
 
-/*         $where[] = 'ae.id_articulo IN (:id_articulo)';
-        $execute[':id_articulo'] = $idEtiquetas; */
+        // Se verifica si se proporcionaron varias etiquetas
+        if (count($etiquetas) > 1) {
+            // Se agrupan los artículos por su ID y se cuentan las veces que aparecen
+            $articulosContados = array_count_values($idArticulos);
+            // Se filtran los artículos que aparecen tantas veces como etiquetas se proporcionaron
+            $idArticulos = array_filter($articulosContados, function ($count) use ($etiquetas) {
+                return $count === count($etiquetas);
+            });
+        }
+
+        // Si no hay artículos que cumplan con las condiciones, se devuelve un arreglo vacío
+        if (empty($idArticulos)) {
+            return [];
+        }
+
+        // Se convierten los IDs de los artículos en una cadena separada por comas
+        $idArticulosStr = implode(', ', $idArticulos);
+
+        $where[] = 'ae.id_articulo IN (' . $idArticulosStr . ')';
     }
 
     $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
     try {
-            $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, string_agg(ae.id_etiqueta::text, ',') as etiquetas
-                                    FROM articulos a
-                                    JOIN categorias c ON (c.id = a.id_categoria)
-                                    JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
-                                    $where
-                                    GROUP BY a.id, c.categoria, c.id, a.codigo, a.descripcion, a.precio, a.stock
-                                    ORDER BY a.codigo;
-            ");
-            $sent->execute($execute);
+        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, string_agg(ae.id_etiqueta::text, ',') as etiquetas
+                                FROM articulos a
+                                JOIN categorias c ON (c.id = a.id_categoria)
+                                JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
+                                $where
+                                GROUP BY a.id, c.categoria, c.id, a.codigo, a.descripcion, a.precio, a.stock
+                                ORDER BY a.codigo");
+        $sent->execute($execute);
     } catch (\Throwable $th) {
-        echo($th);
+        echo ($th);
     }
-
-
-    
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
@@ -104,7 +113,7 @@
                         </label>
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
                             Etiquetas:
-                            <input type="text" name="etiqueta" class="border text-sm rounded-lg w-full p-2.5">
+                            <input type="text" name="etiqueta" value="<?= isset($etiquetas) ? $etiqueta : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                     </div>
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buscar</button>
@@ -119,7 +128,7 @@
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&categoria=<?= hh($etiqueta) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&etiqueta=<?= hh($etiqueta) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Añadir al carrito
                                 <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -139,15 +148,15 @@
                                     $id_usuario = $usuario ? $usuario->id : null;
 
                                     $sent3 = $pdo->prepare("SELECT *
-                                                            FROM valoraciones
-                                                            WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
+FROM valoraciones
+WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
                                     $sent3->execute(['id_usuario' => $id_usuario, 'id_articulo' => $fila['id']]);
                                     $valoracion_usuario = $sent3->fetch(PDO::FETCH_ASSOC);
                                     ?>
                                     <select name="valoracion" id="valoracion">
                                         <option value="" <?= (!$id_usuario) ? 'selected' : '' ?>></option>
-                                        <?php for ($i=1; $i <=5 ; $i++) : ?>
-                                            <option value="<?=$i?>" <?= ($valoracion_usuario && $valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?=$i?></option>
+                                        <?php for ($i = 1; $i <= 5; $i++) : ?>
+                                            <option value="<?= $i ?>" <?= ($valoracion_usuario && $valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
                                         <?php endfor ?>
                                     </select>
                                 </label>
@@ -163,14 +172,14 @@
                             <div>
                                 <label class="block text-m font-medium pl-3 ml-3">
                                     Valoración media:
-                                    <?php 
+                                    <?php
                                     $sent4 = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
-                                                            FROM valoraciones
-                                                            WHERE articulo_id = :id_articulo");
+FROM valoraciones
+WHERE articulo_id = :id_articulo");
                                     $sent4->execute(['id_articulo' => $fila['id']]);
                                     $valoracionMedia = $sent4->fetchColumn();
                                     ?>
-                                    <p class="mb-3 pl-3 font-normal text-gray-700 dark:text-gray-400" ><?= hh($valoracionMedia) ?></p>
+                                    <p class="mb-3 pl-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($valoracionMedia) ?></p>
                                 </label>
                             </div>
                         </div>

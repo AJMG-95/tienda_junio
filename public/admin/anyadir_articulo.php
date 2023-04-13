@@ -3,67 +3,35 @@ session_start();
 
 require '../../vendor/autoload.php';
 
-$id = obtener_post('id');
 $codigo = obtener_post('codigo');
 $descripcion = obtener_post('descripcion');
 $precio = obtener_post('precio');
 $stock = obtener_post('stock');
 $categoria_nombre = obtener_post('categoria');
 $etiquetas = obtener_post('etiquetas');
-$set = [];
+$values = [];
 $execute = [];
 
 $pdo = conectar();
 
-if (!isset($id)) {
-    return volver_admin();
-}
-
-
-// Toma los valores actuales del artículo
-$sent = $pdo->prepare("SELECT * FROM articulos WHERE id = :id");
-$sent->execute([':id' => $id]);
-$anterior = $sent->fetch(PDO::FETCH_ASSOC);
-
-/* print_r($anterior);
-die(); */
-
-if (isset($id)) {
-    $execute[':id'] = $id;
-} else {
-    $execute[':id'] = $anterior['id'];
-}
-
 if (isset($codigo)  && $codigo != '') {
-    $set[] = 'codigo = :codigo';
+    $values[] = 'codigo = :codigo';
     $execute[':codigo'] = $codigo;
-} else {
-    $set[] = 'codigo = :codigo';
-    $execute[':codigo'] = $anterior['codigo'];
-}
+} 
 
 if (isset($descripcion) && $descripcion != '') {
-    $set[] = 'descripcion = :descripcion';
+    $values[] = 'descripcion = :descripcion';
     $execute[':descripcion'] = $descripcion;
-} else {
-    $set[] = 'descripcion = :descripcion';
-    $execute[':descripcion'] = $anterior['descripcion'];
 }
 
 if (isset($precio) && $precio != '') {
-    $set[] = 'precio = :precio';
+    $values[] = 'precio = :precio';
     $execute[':precio'] = $precio;
-} else {
-    $set[] = 'precio = :precio';
-    $execute[':precio'] = isset($anterior['precio']) ? $anterior['precio'] : 0;
 }
 
 if (isset($stock) && $stock != '') {
-    $set[] = 'stock = :stock';
+    $values[] = 'stock = :stock';
     $execute[':stock'] = $stock;
-} else {
-    $set[] = 'stock = :stock';
-    $execute[':stock'] = $anterior['stock'];
 }
 
 if (isset($categoria_nombre) && $categoria_nombre != '') {
@@ -76,26 +44,14 @@ if (isset($categoria_nombre) && $categoria_nombre != '') {
 
     if (isset($categoria) && !empty($categoria)) {
         // Si la categoría existe, obtener su id y actualizar el valor de id_categoria en la tabla articulos
-        $set[] = 'id_categoria = :id_categoria';
+        $values[] = 'id_categoria = :id_categoria';
         $execute[':id_categoria'] = $categoria['id'];
-    } else {
-        $set[] = 'id_categoria = :id_categoria';
-        $execute[':id_categoria'] = $anterior['id_categoria'];
     }
 } else {
-    $set[] = 'id_categoria = :id_categoria';
+    $values[] = 'id_categoria = :id_categoria';
     $execute[':id_categoria'] = $anterior['id_categoria'];
 }
 
-
-$etiquetas_anterior = [];
-$sent = $pdo->prepare("SELECT e.*
-                        FROM etiquetas e JOIN articulos_etiquetas ae ON e.id = ae.id_etiqueta
-                        WHERE ae.id_articulo = :id");
-$sent->execute([':id' => $id]);
-while ($etiqueta = $sent->fetch(PDO::FETCH_ASSOC)) {
-    $etiquetas_anterior[] = $etiqueta['id'];
-}
 
 if (isset($etiquetas) && $etiqueta != '') {
     $etiquetas = explode(' ', $etiquetas);
@@ -123,14 +79,13 @@ if (isset($etiquetas) && $etiqueta != '') {
         }
     }
 }
-$set = !empty($set) ? 'SET ' . implode(' , ', $set) : '';
 
+$values = !empty($values) ? 'VALUES (' . implode(' , ', $values) . ')' : '';
 
 $sent = $pdo->prepare("UPDATE articulos
-                                $set
+                                $values
                                 WHERE  id = :id");
 $sent->execute($execute);
-
 
 $_SESSION['exito'] = 'El artículo se ha Modificado correctamente.';
 
