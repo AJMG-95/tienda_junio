@@ -19,6 +19,20 @@
             const ocultoModificar = document.getElementById('ocultoModificar');
             ocultoModificar.setAttribute('value', id);
         }
+
+        function insertarEtiqueta(el, id) {
+            el.preventDefault();
+            const ocultoEtiqueta = document.getElementById('ocultoEtiqueta');
+            ocultoEtiqueta.setAttribute('value', id);
+        }
+
+        function borrarEtiqueta(el, id) {
+            el.preventDefault();
+            const ocultoEtiquetaDel = document.getElementById('ocultoEtiquetaDel');
+            ocultoEtiquetaDel.setAttribute('value', id);
+        }
+
+
     </script>
     <title>Listado de artículos</title>
 </head>
@@ -37,7 +51,7 @@
     }
 
     $pdo = conectar();
-    $sent = $pdo->query("SELECT * FROM articulos ORDER BY codigo");
+    $sent = $pdo->query("SELECT a.*, c.categoria FROM articulos a JOIN categorias c ON (id_categoria = c.id) ORDER BY a.codigo");
     ?>
     <div class="container mx-auto">
         <?php require '../../src/_menu.php' ?>
@@ -50,6 +64,7 @@
                     <th scope="col" class="py-3 px-6">Descripción</th>
                     <th scope="col" class="py-3 px-6">Precio</th>
                     <th scope="col" class="py-3 px-6">Stock</th>
+                    <th scope="col" class="py-3 px-6">Categoria</th>
                     <th scope="col" class="py-3 px-6">Etiquetas</th>
                     <th scope="col" class="py-3 px-6 text-center">Acciones</th>
                 </thead>
@@ -60,6 +75,7 @@
                             <td class="py-4 px-6"><?= hh($fila['descripcion']) ?></td>
                             <td class="py-4 px-6"><?= hh($fila['precio']) ?></td>
                             <td class="py-4 px-6"><?= hh($fila['stock']) ?></td>
+                            <td class="py-4 px-6"><?= hh($fila['categoria']) ?></td>
                             <td class="py-4 px-6">
                                 <?php
                                 $sent2 = $pdo->prepare("SELECT etiqueta
@@ -69,10 +85,20 @@
                                 ?>
                                 <select name="ets" id="ets" class="border text-sm rounded-lg w-full p-2.5">
                                     <?php foreach ($sent2 as $row) : ?>
-                                        <option value=""><?=hh($row['etiqueta'])?></option>
+                                        <option value=""><?= hh($row['etiqueta']) ?></option>
                                     <?php endforeach ?>
                                 </select>
-
+                                <br />
+                                <div class="mt-2">
+                                    <form action="/admin/editar.php" method="POST" class="inline">
+                                        <input type="hidden" name="id" value="<?= $fila_id ?>">
+                                        <button type="submit" onclick="insertarEtiqueta(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900" data-modal-toggle="etiqueta">Insertar</button>
+                                    </form>
+                                    <form action="/admin/borrar.php" method="POST" class="inline">
+                                        <input type="hidden" name="id" value="<?= $fila_id ?>">
+                                        <button type="submit" onclick="borrarEtiqueta(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" data-modal-toggle="etiqueta-del">Borrar</button>
+                                    </form>
+                                </div>
                             </td>
                             <td class="px-6 text-center">
                                 <?php $fila_id = hh($fila['id']) ?>
@@ -142,13 +168,19 @@
                             Descripción:
                             <input type="text" name="descripcion" id="descripcion" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
-                        <label for="categoria" class="block mb-2 text-sm font-medium">
-                            Categoria:
-                            <input type="text" name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="etiquetas" class="block mb-2 text-sm font-medium">
-                            Etiquetas:
-                            <input type="text" name="etiquetas" id="etiquetas" class="border text-sm rounded-lg w-full p-2.5">
+                        <label class="block mb-2 text-sm font-medium">
+                            Categoría:
+                            <select name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
+                                <?php
+                                $sent2 = $pdo->query("SELECT * FROM categorias");
+                                ?>
+                                <option value="">Todas las categorías</option>
+                                <?php foreach ($sent2 as $fila) : ?>
+                                    <option value=<?= hh($fila['id']) ?> <?= ($fila['id'] == $categoria) ? 'selected' : '' ?>>
+                                        <?= hh($fila['categoria']) ?>
+                                    </option>
+                                <?php endforeach ?>
+                            </select>
                         </label>
                         <label for="precio" class="block mb-2 text-sm font-medium">
                             Precio:
@@ -192,13 +224,19 @@
                             Descripción:
                             <input type="text" name="descripcion" id="descripcion" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
-                        <label for="categoria" class="block mb-2 text-sm font-medium">
-                            Categoria:
-                            <input type="text" name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
-                        </label>
-                        <label for="etiquetas" class="block mb-2 text-sm font-medium">
-                            Etiquetas:
-                            <input type="text" name="etiquetas" id="etiquetas" class="border text-sm rounded-lg w-full p-2.5">
+                        <label class="block mb-2 text-sm font-medium">
+                            Categoría:
+                            <select name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
+                                <?php
+                                $sent2 = $pdo->query("SELECT * FROM categorias");
+                                ?>
+                                <option value="">Todas las categorías</option>
+                                <?php foreach ($sent2 as $fila) : ?>
+                                    <option value=<?= hh($fila['id']) ?> <?= ($fila['id'] == $categoria) ? 'selected' : '' ?>>
+                                        <?= hh($fila['categoria']) ?>
+                                    </option>
+                                <?php endforeach ?>
+                            </select>
                         </label>
                         <label for="precio" class="block mb-2 text-sm font-medium">
                             Precio:

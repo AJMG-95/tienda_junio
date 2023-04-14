@@ -14,7 +14,7 @@
     <?php
     require '../vendor/autoload.php';
     $carrito = unserialize(carrito());
-    
+
     $categoria = obtener_get('categoria');
     $etiqueta = obtener_get('etiqueta');
     $valoracion = obtener_get('valoracion');
@@ -24,6 +24,7 @@
     $where = [];
     $execute = [];
     $idEtiquetas = [];
+    $idArticulos = [];
 
     if (isset($categoria) && $categoria != '') {
         $where[] = 'id_categoria = :categoria';
@@ -33,24 +34,23 @@
     if (isset($etiqueta) && $etiqueta != '') {
         $etiquetas = explode(' ', $etiqueta);
 
-        $idArticulos = [];
 
         foreach ($etiquetas as $et) {
-            $sent2 = $pdo->prepare("SELECT DISTINCT ae.id_articulo
+            $sent = $pdo->prepare("SELECT  ae.id_articulo
                                         FROM articulos_etiquetas ae
                                         JOIN etiquetas e ON ae.id_etiqueta = e.id
-                                    WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
-            $sent2->execute([':etiqueta' => $et]);
-            $res = $sent2->fetchAll(PDO::FETCH_ASSOC);
+                                        WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
+            $sent->execute([':etiqueta' => $et]);
+            $res = $sent->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($res as $fila) {
                 foreach ($fila as $id) {
-                    $idArticulos[] = gmp_init($id);
+                    $idArticulos[] = $id;
                 }
             }
         }
 
-        $idArticulos = array_unique($idArticulos);
+        /*         $idArticulos = array_unique($idArticulos);
 
         // Se verifica si se proporcionaron varias etiquetas
         if (count($etiquetas) > 1) {
@@ -60,7 +60,7 @@
             $idArticulos = array_filter($articulosContados, function ($count) use ($etiquetas) {
                 return $count === count($etiquetas);
             });
-        }
+        } */
 
         // Si no hay artículos que cumplan con las condiciones, se devuelve un arreglo vacío
         if (empty($idArticulos)) {
