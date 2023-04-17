@@ -20,19 +20,6 @@
             ocultoModificar.setAttribute('value', id);
         }
 
-        function insertarEtiqueta(el, id) {
-            el.preventDefault();
-            const ocultoEtiqueta = document.getElementById('ocultoEtiqueta');
-            ocultoEtiqueta.setAttribute('value', id);
-        }
-
-        function borrarEtiqueta(el, id) {
-            el.preventDefault();
-            const ocultoEtiquetaDel = document.getElementById('ocultoEtiquetaDel');
-            ocultoEtiquetaDel.setAttribute('value', id);
-        }
-
-
     </script>
     <title>Listado de artículos</title>
 </head>
@@ -70,6 +57,7 @@
                 </thead>
                 <tbody>
                     <?php foreach ($sent as $fila) : ?>
+                        <?php $fila_id = hh($fila['id']) ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                             <td class="py-4 px-6"><?= hh($fila['codigo']) ?></td>
                             <td class="py-4 px-6"><?= hh($fila['descripcion']) ?></td>
@@ -89,19 +77,9 @@
                                     <?php endforeach ?>
                                 </select>
                                 <br />
-                                <div class="mt-2">
-                                    <form action="/admin/editar.php" method="POST" class="inline">
-                                        <input type="hidden" name="id" value="<?= $fila_id ?>">
-                                        <button type="submit" onclick="insertarEtiqueta(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900" data-modal-toggle="etiqueta">Insertar</button>
-                                    </form>
-                                    <form action="/admin/borrar.php" method="POST" class="inline">
-                                        <input type="hidden" name="id" value="<?= $fila_id ?>">
-                                        <button type="submit" onclick="borrarEtiqueta(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900" data-modal-toggle="etiqueta-del">Borrar</button>
-                                    </form>
-                                </div>
                             </td>
                             <td class="px-6 text-center">
-                                <?php $fila_id = hh($fila['id']) ?>
+
                                 <form action="/admin/editar.php" method="POST" class="inline">
                                     <input type="hidden" name="id" value="<?= $fila_id ?>">
                                     <button type="submit" onclick="cambiarModificar(event, <?= $fila_id ?>)" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900" data-modal-toggle="modificar">Editar</button>
@@ -117,7 +95,7 @@
             </table>
         </div>
     </div>
-    <!-- Esto es para borrar -->
+    <!-- Esto es para borrar un articulo -->
     <div id="popup-modal-del" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
@@ -143,6 +121,7 @@
             </div>
         </div>
     </div>
+
     <!-- Esto es para modificar -->
     <div id="modificar" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
