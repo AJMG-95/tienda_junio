@@ -16,77 +16,53 @@
     $carrito = unserialize(carrito());
 
     $categoria = obtener_get('categoria');
-    $etiqueta = obtener_get('etiqueta');
+    $etiquetas = obtener_get('etiqueta');
     $valoracion = obtener_get('valoracion');
 
     $pdo = conectar();
 
     $where = [];
     $execute = [];
-    $idEtiquetas = [];
-    $idArticulos = [];
-
+    
     if (isset($categoria) && $categoria != '') {
         $where[] = 'id_categoria = :categoria';
         $execute[':categoria'] = $categoria;
     }
+    
+    $where = !empty($where) ? ' AND ' . implode(' AND ', $where) : '';
+    
+    if (isset($etiquetas) && $etiquetas != '') {
+        $etiquetas_validas = [];
+        $where_etiquetas = [];
+        $etiquetas = explode(' ', $etiquetas);
 
-    if (isset($etiqueta) && $etiqueta != '') {
-        $etiquetas = explode(' ', $etiqueta);
-
-
-        foreach ($etiquetas as $et) {
-            $sent = $pdo->prepare("SELECT  ae.id_articulo
-                                        FROM articulos_etiquetas ae
-                                        JOIN etiquetas e ON ae.id_etiqueta = e.id
-                                        WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
-            $sent->execute([':etiqueta' => $et]);
-            $res = $sent->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($res as $fila) {
-                foreach ($fila as $id) {
-                    $idArticulos[] = $id;
-                }
-            }
+        foreach ($etiquetas as $etiqueta) {
+            $sent = $pdo->prepare("SELECT e.id
+                                    FROM articulos_etiquetas ae JOIN etiquetas e ON (ae.id_etiqueta = e.id)
+                                    WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
+            $sent->execute([':etiqueta' => $etiqueta]);
+            $etiquevaValida = $sent->fetchColumn();
+            array_push($etiquetas_validas, $etiquevaValida);
         }
 
-        /*         $idArticulos = array_unique($idArticulos);
 
-        // Se verifica si se proporcionaron varias etiquetas
-        if (count($etiquetas) > 1) {
-            // Se agrupan los artículos por su ID y se cuentan las veces que aparecen
-            $articulosContados = array_count_values($idArticulos);
-            // Se filtran los artículos que aparecen tantas veces como etiquetas se proporcionaron
-            $idArticulos = array_filter($articulosContados, function ($count) use ($etiquetas) {
-                return $count === count($etiquetas);
-            });
-        } */
-
-        // Si no hay artículos que cumplan con las condiciones, se devuelve un arreglo vacío
-        if (empty($idArticulos)) {
-            return [];
+        foreach ($etiquetas_validas as $etv) {
+        $execute[':etv'] = $etv;
+        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid
+                                FROM articulos a JOIN categorias c ON (a.id_categoria = c.id)
+                                $where AND a.id  IN (SELECT ae.id_articulo FROM articulos_etiquetas ae
+                                                    WHERE ae.id_etiqueta = :etv)");
         }
-
-        // Se convierten los IDs de los artículos en una cadena separada por comas
-        $idArticulosStr = implode(', ', $idArticulos);
-
-        $where[] = 'ae.id_articulo IN (' . $idArticulosStr . ')';
-    }
-
-    $where = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-
-    try {
-        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid, string_agg(ae.id_etiqueta::text, ',') as etiquetas
-                                FROM articulos a
-                                JOIN categorias c ON (c.id = a.id_categoria)
-                                JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
-                                $where
-                                GROUP BY a.id, c.categoria, c.id, a.codigo, a.descripcion, a.precio, a.stock
-                                ORDER BY a.codigo");
         $sent->execute($execute);
-    } catch (\Throwable $th) {
-        echo ($th);
+
+
+    } else {
+        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid
+                                FROM articulos a JOIN categorias c ON (a.id_categoria = c.id)
+                                $where");
+        $sent->execute($execute);
     }
+
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
