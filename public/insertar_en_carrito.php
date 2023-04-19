@@ -8,6 +8,7 @@ require '../vendor/autoload.php';
 
 $categoria = obtener_get('categoria');
 $nombre = obtener_get('nombre');
+$etiqueta = obtener_get('etiqueta');
 
 try {
     $id = obtener_get('id');
@@ -60,6 +61,10 @@ try {
         
     if ($categoria !== null) {
         $params .= '&categoria=' . hh($categoria);
+    }
+
+    if ($categoria !== null) {
+        $params .= '&etiqueta=' . hh($etiqueta);
     }
 
     header("Location: /index.php?$params");

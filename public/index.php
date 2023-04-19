@@ -34,24 +34,41 @@
     if (isset($etiquetas) && $etiquetas != '') {
         $etiquetas_validas = [];
         $where_etiquetas = [];
-        $etiquetas = explode(' ', $etiquetas);
 
+        $etiquetas = explode(' ', $etiquetas);
+        
         foreach ($etiquetas as $etiqueta) {
-            $sent = $pdo->prepare("SELECT e.id
+            $sent = $pdo->prepare("SELECT e.etiqueta
                                     FROM articulos_etiquetas ae JOIN etiquetas e ON (ae.id_etiqueta = e.id)
                                     WHERE lower(unaccent(etiqueta)) LIKE lower(unaccent(:etiqueta))");
             $sent->execute([':etiqueta' => $etiqueta]);
             $etiquevaValida = $sent->fetchColumn();
             array_push($etiquetas_validas, $etiquevaValida);
         }
-
-        foreach ($etiquetas_validas as $etv) {
-        $execute[':etv'] = $etv;
-        $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid
-                                FROM articulos a JOIN categorias c ON (a.id_categoria = c.id)
-                                $where AND a.id  IN (SELECT ae.id_articulo FROM articulos_etiquetas ae
-                                                    WHERE ae.id_etiqueta = :etv)");
+        
+        foreach ($etiquetas_validas as $et) {
+            $where_etiquetas[] = 'etiqueta = :etiqueta';
+            $execute[':etiqueta'] = $et;
         }
+
+        $where_etiquetas = !empty($where_etiquetas) ? 'WHERE ' . implode(' AND ', $where_etiquetas) : '';
+
+        $having = 'HAVING COUNT(DISTINCT ae.id_etiqueta) >= ' . count($etiquetas_validas);
+
+
+        $sent = $pdo->prepare("SELECT DISTINCT a.*, c.categoria, c.id as catid
+                                FROM articulos a
+                                JOIN categorias c ON (a.id_categoria = c.id)
+                                JOIN articulos_etiquetas ae ON (a.id = ae.id_articulo)
+                                JOIN etiquetas e ON (e.id = ae.id_etiqueta)
+                                $where AND a.id IN (SELECT DISTINCT aa.id
+                                                    FROM articulos aa
+                                                    JOIN articulos_etiquetas aaee ON (aa.id = aaee.id_articulo)
+                                                    JOIN etiquetas ee ON (ee.id = aaee.id_etiqueta)
+                                                    $where_etiquetas
+                                                    GROUP BY aa.id)
+                                GROUP BY a.id, c.categoria, c.id
+                                $having");
         $sent->execute($execute);
 
 
@@ -88,7 +105,7 @@
                         </label>
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
                             Etiquetas:
-                            <input type="text" name="etiqueta" value="<?= isset($etiquetas) ? $etiqueta : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
+                            <input type="text" name="etiqueta" value="<?= isset($etiquetas) ? implode(' ', $etiquetas) : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                     </div>
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buscar</button>
