@@ -45,7 +45,6 @@
             array_push($etiquetas_validas, $etiquevaValida);
         }
 
-
         foreach ($etiquetas_validas as $etv) {
         $execute[':etv'] = $etv;
         $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid
@@ -124,8 +123,8 @@
                                     $id_usuario = $usuario ? $usuario->id : null;
 
                                     $sent3 = $pdo->prepare("SELECT *
-FROM valoraciones
-WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
+                                                            FROM valoraciones
+                                                            WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
                                     $sent3->execute(['id_usuario' => $id_usuario, 'id_articulo' => $fila['id']]);
                                     $valoracion_usuario = $sent3->fetch(PDO::FETCH_ASSOC);
                                     ?>
@@ -150,8 +149,8 @@ WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
                                     Valoración media:
                                     <?php
                                     $sent4 = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
-FROM valoraciones
-WHERE articulo_id = :id_articulo");
+                                                            FROM valoraciones
+                                                            WHERE articulo_id = :id_articulo");
                                     $sent4->execute(['id_articulo' => $fila['id']]);
                                     $valoracionMedia = $sent4->fetchColumn();
                                     ?>

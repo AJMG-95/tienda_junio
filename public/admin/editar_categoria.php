@@ -37,8 +37,6 @@ if (isset($categoria_nombre) && $categoria_nombre != '') {
 }
 
 $set = !empty($set) ? 'SET ' . implode(', ', $set) : '';
-print_r($set);
-die();
 
 try {
     if ($set != '') {
