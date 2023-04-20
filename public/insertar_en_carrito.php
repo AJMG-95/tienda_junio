@@ -9,6 +9,8 @@ require '../vendor/autoload.php';
 $categoria = obtener_get('categoria');
 $nombre = obtener_get('nombre');
 $etiqueta = obtener_get('etiqueta');
+$precioMax = obtener_get('preciomax');
+$precioMin = obtener_get('preciomin');
 
 try {
     $id = obtener_get('id');
@@ -63,8 +65,16 @@ try {
         $params .= '&categoria=' . hh($categoria);
     }
 
-    if ($categoria !== null) {
+    if ($etiqueta !== null) {
         $params .= '&etiqueta=' . hh($etiqueta);
+    }
+
+    if ($precioMax !== null) {
+        $params .= '&preciomax=' . hh($precioMax);
+    }
+
+    if ($precioMin !== null) {
+        $params .= '&preciomin=' . hh($precioMin);
     }
 
     header("Location: /index.php?$params");
