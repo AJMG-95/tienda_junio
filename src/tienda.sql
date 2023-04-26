@@ -8,7 +8,7 @@ CREATE TABLE articulos (
     descripcion varchar(255)  NOT NULL,
     precio      numeric(7, 2) NOT NULL,
     stock       int           NOT NULL,
-    id_categoria bigint       NOT NULL REFERENCES categorias (id)
+    categoria_id bigint       NOT NULL REFERENCES categorias (id)
 );
 
 DROP TABLE IF EXISTS categorias CASCADE;
@@ -25,9 +25,9 @@ CREATE TABLE etiquetas (
 
 DROP TABLE IF EXISTS articulos_etiquetas CASCADE;
 CREATE TABLE articulos_etiquetas (
-    id_articulo bigint NOT NULL REFERENCES articulos (id),
-    id_etiqueta bigint NOT NULL REFERENCES etiquetas (id),
-    PRIMARY KEY (id_articulo, id_etiqueta)
+    articulo_id bigint NOT NULL REFERENCES articulos (id),
+    etiqueta_id bigint NOT NULL REFERENCES etiquetas (id),
+    PRIMARY KEY (articulo_id, etiqueta_id)
 );
 
 DROP TABLE IF EXISTS valoraciones CASCADE;
@@ -37,7 +37,6 @@ CREATE TABLE valoraciones (
     valoracion  int     CHECK (valoracion >= 1 AND valoracion <= 5),
     PRIMARY KEY (articulo_id, usuario_id)
 );
-
 
 
 DROP TABLE IF EXISTS usuarios CASCADE;
@@ -65,7 +64,7 @@ CREATE TABLE articulos_facturas (
 
 -- Carga inicial de datos de prueba:
 
-INSERT INTO articulos (codigo, descripcion, precio, stock, id_categoria)
+INSERT INTO articulos (codigo, descripcion, precio, stock, categoria_id)
     VALUES ('18273892389', 'Yogur piña', 2.50, 20, 2),
            ('83745828273', 'Tigretón', 1.10, 30, 2),
            ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15, 1),
@@ -90,11 +89,11 @@ INSERT INTO etiquetas (etiqueta)
             ('Deporte'),
             ('Fruta'),
             ('Dulce'),
-            ('Alimenatción'),
+            ('Alimentación'),
             ('Ordenadores'),
             ('Ropa');
 
-INSERT INTO articulos_etiquetas (id_articulo, id_etiqueta)
+INSERT INTO articulos_etiquetas (articulo_id, etiqueta_id)
     VALUES (1, 6),
             (1, 4),
             (2, 6),
