@@ -13,7 +13,7 @@ if (!isset($id)) {
 
 $pdo = conectar();
 
-$sent = $pdo->prepare("SELECT a.id FROM articulos a JOIN categorias c ON (c.id = a.id_categoria) WHERE c.id = :id ");
+$sent = $pdo->prepare("SELECT a.id FROM articulos a JOIN categorias c ON (c.id = a.categoria_id) WHERE c.id = :id ");
 $sent->execute([':id' => $id]);
 $res = $sent->fetchColumn();
 

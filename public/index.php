@@ -105,11 +105,11 @@
 
 
     $sent = $pdo->prepare("SELECT articulos.*, c.categoria, c.id as catid $cond $cond2 FROM articulos
-        JOIN categorias c ON (articulos.categoria_id = c.id) 
+        JOIN categorias c ON (articulos.categoria_id = c.id)
         JOIN articulos_etiquetas ae ON (articulos.id = ae.articulo_id)
         JOIN etiquetas e ON (ae.etiqueta_id = e.id) $condicion $condicion2 $where $where_sin_valoracion
         GROUP BY articulos.id, c.categoria, c.id $condicion3
-        $having  $having_mas_valoraciones 
+        $having  $having_mas_valoraciones
        ");
  
     $sent->execute($execute);
