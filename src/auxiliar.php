@@ -51,22 +51,31 @@ function carrito_vacio()
     return $carrito->vacio();
 }
 
+function volver_a($locationn) {
+    header($locationn);
+}
+
+
 function volver_admin()
 {
-    header("Location: /admin/");
+    volver_a("Location: /admin/");
 }
 
 function volver_categoria()
 {
-    header("Location: /admin/categorias.php");
+    volver_a("Location: /admin/categorias.php");
 }
 
 function volver_etiqueta()
 {
-    header('Location: /admin/etiquetas.php');
+    volver_a('Location: /admin/etiquetas.php');
 }
 
 function redirigir_login()
 {
-    header('Location: /login.php');
+    volver_a('Location: /login.php');
+}
+
+function volver_modEtiquetas($id) {
+    volver_a('Location: /admin/mod_etiqueta_articulo.php?id='.$id);
 }
