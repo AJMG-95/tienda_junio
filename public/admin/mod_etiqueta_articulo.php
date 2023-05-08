@@ -26,9 +26,6 @@
 
     $id_articulo = obtener_get('id');
 
-    // Creamos un array vacío para almacenar los ids de las etiquetas
-    $ids_etiquetas = [];
-
     $pdo = conectar();
 
     // Obtenemos los ids de las etiquetas asociadas al artículo

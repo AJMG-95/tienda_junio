@@ -21,8 +21,8 @@ class Etiqueta extends Modelo
 
     public static function consultaId(string $param, ?PDO $pdo = null)
     {
-        $sent = $pdo->prepare('SELECT id 
-                                FROM  etiquetas 
+        $sent = $pdo->prepare('SELECT id
+                                FROM  etiquetas
                                 WHERE unaccent(LOWER(e.etiqueta)) LIKE unaccent(LOWER(:etiqueta))');
         $sent->execute([':etiqueta' => '%' . $param . '%']);
         $idEtiqueta = $sent->fetch();

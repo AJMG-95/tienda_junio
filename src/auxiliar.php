@@ -51,7 +51,8 @@ function carrito_vacio()
     return $carrito->vacio();
 }
 
-function volver_a($locationn) {
+function volver_a($locationn)
+{
     header($locationn);
 }
 
@@ -76,6 +77,7 @@ function redirigir_login()
     volver_a('Location: /login.php');
 }
 
-function volver_modEtiquetas($id) {
-    volver_a('Location: /admin/mod_etiqueta_articulo.php?id='.$id);
+function volver_modEtiquetas($id)
+{
+    volver_a('Location: /admin/mod_etiqueta_articulo.php?id=' . $id);
 }

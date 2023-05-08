@@ -24,9 +24,11 @@
 
     $pdo = conectar();
 
-    $sent = $pdo->prepare("SELECT art.*, usuarios.usuario, val.valoracion FROM
-             articulos art LEFT JOIN valoraciones val ON (art.id = val.articulo_id) JOIN usuarios ON (usuarios.id = val.usuario_id)
-            WHERE usuarios.usuario = :usuario ");
+    $sent = $pdo->prepare("SELECT art.*, usuarios.usuario, com.comentario
+                            FROM articulos art
+                            LEFT JOIN comentarios com ON (art.id = com.articulo_id)
+                            JOIN usuarios ON (usuarios.id = com.usuario_id)
+                            WHERE usuarios.usuario = :usuario ");
 
     $sent->execute([':usuario' => $usuario]);
 
@@ -47,7 +49,7 @@
                     <th scope="col" class="py-3 px-6">Precio</th>
                     <th scope="col" class="py-3 px-6">Stock</th>
                     <th scope="col" class="py-3 px-6">Usuario</th>   
-                    <th scope="col" class="py-3 px-6">Valoración</th> 
+                    <th scope="col" class="py-3 px-6">Comentario</th> 
                 </thead>
                 <tbody>
                     <?php foreach ($sent as $fila) : ?>
@@ -56,7 +58,7 @@
                             <td class="py-4 px-6"><?= $fila['precio'] ?></td>
                             <td class="py-4 px-6"><?= $fila['stock'] ?></td>
                             <td class="py-4 px-6"><?= $fila['usuario'] ?></td>
-                            <td class="py-4 px-6"><?= $fila['valoracion'] ? $fila['valoracion'] : '' ?></td>
+                            <td class="py-4 px-6"><?= $fila['comentario'] ? $fila['comentario'] : '' ?></td>
 
                         </tr>
                     <?php endforeach ?>

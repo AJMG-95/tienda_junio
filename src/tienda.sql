@@ -38,13 +38,20 @@ CREATE TABLE valoraciones (
     PRIMARY KEY (articulo_id, usuario_id)
 );
 
+DROP TABLE IF EXISTS comentarios CASCADE;
+CREATE TABLE comentarios (
+    articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
+    usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
+    comentario  varchar(255),
+    PRIMARY KEY (articulo_id, usuario_id)
+);
 
 DROP TABLE IF EXISTS usuarios CASCADE;
 CREATE TABLE usuarios (
     id       bigserial    PRIMARY KEY,
     usuario  varchar(255) NOT NULL UNIQUE,
     password varchar(255) NOT NULL,
-    validado   boolean      NOT NULL
+    validado boolean      NOT NULL
 );
 
 DROP TABLE IF EXISTS facturas CASCADE;
@@ -60,6 +67,15 @@ CREATE TABLE articulos_facturas (
     factura_id  bigint NOT NULL REFERENCES facturas (id),
     cantidad    int    NOT NULL,
     PRIMARY KEY (articulo_id, factura_id)
+);
+
+DROP TABLE IF EXISTS reclamaciones CASCADE;
+CREATE TABLE reclamaciones (
+    fecha_creacion  timestamp   NOT NULL DEFAULT localtimestamp(0),
+    reclamacion     varchar(255),
+    usuario_id      bigint      NOT NULL REFERENCES usuarios (id),
+    factura_id     bigint      NOT NULL REFERENCES articulos(id),
+    PRIMARY KEY (factura_id, usuario_id)
 );
 
 -- Carga inicial de datos de prueba:
