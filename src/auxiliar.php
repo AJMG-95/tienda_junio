@@ -81,3 +81,9 @@ function volver_modEtiquetas($id)
 {
     volver_a('Location: /admin/mod_etiqueta_articulo.php?id=' . $id);
 }
+
+
+function volver_dashboard()
+{
+    volver_a('Location: /dashboard.php');
+}

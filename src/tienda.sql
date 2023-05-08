@@ -40,6 +40,7 @@ CREATE TABLE valoraciones (
 
 DROP TABLE IF EXISTS comentarios CASCADE;
 CREATE TABLE comentarios (
+    fecha_creacion  timestamp   NOT NULL DEFAULT localtimestamp(0),
     articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
     usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
     comentario  varchar(255),
