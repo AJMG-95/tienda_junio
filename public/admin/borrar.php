@@ -19,7 +19,7 @@ if (!isset($id)) {
 
 $pdo = conectar();
 try {
-    $sent = $pdo->prepare("DELETE FROM articulos_etiquetas WHERE id_articulo = :id");
+    $sent = $pdo->prepare("DELETE FROM articulos_etiquetas WHERE articulo_id = :id");
     $sent->execute([':id' => $id]);
 } catch (\Throwable $th) {
     //throw $th;

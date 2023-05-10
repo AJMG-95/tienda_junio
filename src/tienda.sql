@@ -58,6 +58,7 @@ CREATE TABLE usuarios (
 DROP TABLE IF EXISTS facturas CASCADE;
 CREATE TABLE facturas (
     id         bigserial  PRIMARY KEY,
+    fecha_creacion  timestamp   NOT NULL DEFAULT localtimestamp(0),
     created_at timestamp  NOT NULL DEFAULT localtimestamp(0),
     usuario_id bigint NOT NULL REFERENCES usuarios (id)
 );
