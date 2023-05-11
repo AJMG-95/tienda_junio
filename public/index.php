@@ -274,7 +274,7 @@
                                         </td>
                                         <td class="py-4 px-6 text-center"><?= $cantidad ?></td>
                                     </tr>
-                                <?php endforeach ?>
+                                <?php endforeach   //lndlfnoi?>
                             </tbody>
                         </table>
                     </div>
