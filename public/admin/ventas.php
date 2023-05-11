@@ -31,7 +31,7 @@
 
     $pdo = conectar();
 
-    $sent = $pdo->query("SELECT DISTINCT art.*, af.cantidad, u.usuario, val.valoracion, com.comentario, f.fecha_creacion, u.id
+    $sent = $pdo->query("SELECT DISTINCT art.descripcion, art.precio, art.id, af.cantidad, u.usuario, val.valoracion, com.comentario, f.fecha_creacion, u.id
     FROM articulos art
     RIGHT JOIN articulos_facturas af ON (art.id = af.articulo_id)
     JOIN facturas f ON (f.id = af.factura_id)

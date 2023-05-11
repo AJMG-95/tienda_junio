@@ -1,11 +1,12 @@
 <?php
 session_start();
 require '../vendor/autoload.php';
-// Obtener los datos del formulario de comentario
 
-$comentario = isset($_POST['comentario']) ? obtener_post('comentario') : '';
-$articulo_id = obtener_get('articulo_id');
-$usuario_id = obtener_get('usuario_id');
+$comentario = obtener_post('comentario');
+
+$articulo_id = obtener_post('articulo_id');
+
+$usuario_id = obtener_post('usuario_id'); // Suponiendo que ya tienes el ID del usuario en una sesión
 
 $pdo = conectar();
 

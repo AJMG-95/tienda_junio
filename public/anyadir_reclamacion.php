@@ -9,8 +9,6 @@ $factura_id = obtener_post('factura_id');
 $values = [];
 $execute = [];
 
-/* print_r($reclamacion . '- - -' . $usuario_id . '- - -' . $factura_id);
-die(); */
 $pdo = conectar();
 
 $reclamacion = ucfirst($reclamacion);

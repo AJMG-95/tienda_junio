@@ -26,18 +26,15 @@
 <body>
     <?php
     require '../vendor/autoload.php';
-
-    if ($usuario = \App\Tablas\Usuario::logueado()) {
-        if (!$usuario->es_admin()) {
-            $_SESSION['error'] = 'Acceso no autorizado.';
-            return volver();
-        }
-    } else {
-        return redirigir_login();
-    }
+    $usuario_id = obtener_get('id');
 
     $pdo = conectar();
-    $sent = $pdo->query("SELECT * FROM reclamaciones ORDER BY fecha_creacion");
+    $sent = $pdo->prepare("SELECT r.*, f.fecha_creacion as fecha_factura
+                        FROM reclamaciones r
+                        JOIN facturas f ON (f.id = r.factura_id)
+                        WHERE r.usuario_id = :id
+                        ORDER BY r.fecha_creacion");
+    $sent->execute([':id' => $usuario_id ]);
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
@@ -45,12 +42,14 @@
         <div class="overflow-x-auto relative mt-4">
             <table class="mx-auto text-sm text-left text-gray-500 dark:text-gray-400">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <th scope="col" class="py-3 px-6">Fecha de factura</th>
                     <th scope="col" class="py-3 px-6">Reclamacion</th>
                     <th scope="col" class="py-3 px-6 text-center">Acciones</th>
                 </thead>
                 <tbody>
                     <?php foreach ($sent as $fila) : ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="py-4 px-6"><?= hh($fila['fecha_factura']) ?></td>
                             <td class="py-4 px-6"><?= hh($fila['reclamacion']) ?></td>
                             <td class="px-6 text-center">
                                 <?php $fila_id = hh($fila['id']) ?>
@@ -84,7 +83,7 @@
                     <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea borrar este artículo?</h3>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea borrar esta reclamación/valoración?</h3>
                     <form action="/admin/borrar_reclamacion.php" method="POST">
                         <input id="ocultReclamacion" type="hidden" name="id">
                         <button data-modal-toggle="reclamacion-borrar" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
@@ -111,7 +110,7 @@
                     <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea borrar este artículo?</h3>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea modificar esta reclamación/valoración?</h3>
                     <form action="/admin/editar_reclamacion.php" method="POST">
 
                         <label for="reclamacion" class="block mb-2 text-sm font-medium">

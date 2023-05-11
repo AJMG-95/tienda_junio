@@ -90,7 +90,7 @@ session_start() ?>
                         <span class="sr-only">Cerrar ventana</span>
                     </button>
                     <div class="p-6 text-center">
-                        <form action="/anyadir_reclamacion.php?id=<?= $factura->id ?>&usuario_id=<?= $usuario_id ?>" method="POST">
+                        <form action="/anyadir_reclamacion.php" method="POST">
                             <input type="hidden" name="factura_id" value="<?= $factura->id ?>">
                             <input type="hidden" name="usuario_id" value="<?= $usuario_id ?>">
                             <div class="mb-6">

@@ -24,7 +24,7 @@
         $sent = $pdo->prepare('SELECT *
                                  FROM articulos
                                 WHERE id IN (:ids)');
-
+        $sent->execute([':ids' => implode(', ', $carrito->getIds())]);
         foreach ($sent->fetchAll(PDO::FETCH_ASSOC) as $fila) {
             if ($fila['stock'] < $carrito->getLinea($fila['id'])->getCantidad()) {
                 $_SESSION['error'] = 'No hay existencias suficientes para crear la factura.';

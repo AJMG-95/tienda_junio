@@ -8,6 +8,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="/css/output.css" rel="stylesheet">
     <title>Portal</title>
+    <script>
+        function cambiar(el, articulo_id, usuario_id) {
+            el.preventDefault();
+            const oculto_art = document.getElementById('ocultoId');
+            oculto_art.setAttribute('value', articulo_id);
+            const oculto_usuario = document.getElementById('ocultoIdUsuario');
+            oculto_usuario.setAttribute('value', usuario_id);
+        }
+    </script>
+
 </head>
 
 <body>
@@ -104,19 +114,18 @@
     }
 
 
-    $sent = $pdo->prepare("SELECT articulos.*, c.categoria, c.id as catid $cond $cond2 FROM articulos
-        JOIN categorias c ON (articulos.categoria_id = c.id)
-        JOIN articulos_etiquetas ae ON (articulos.id = ae.articulo_id)
-        JOIN etiquetas e ON (ae.etiqueta_id = e.id) $condicion $condicion2 $where $where_sin_valoracion
-        GROUP BY articulos.id, c.categoria, c.id $condicion3
-        $having  $having_mas_valoraciones
+    $sent = $pdo->prepare("SELECT articulos.*, c.categoria, c.id as catid $cond $cond2 
+    FROM articulos
+    JOIN categorias c ON (articulos.categoria_id = c.id) 
+    LEFT JOIN articulos_etiquetas ae ON (articulos.id = ae.articulo_id)
+    LEFT JOIN etiquetas e ON (ae.etiqueta_id = e.id)
+    $where $where_sin_valoracion
+    GROUP BY articulos.id, c.categoria, c.id $condicion3
+    $having  $having_mas_valoraciones 
        ");
 
     $sent->execute($execute);
 
-    // Usuario conectado
-    $usuario = \App\Tablas\Usuario::logueado();
-    $id_usuario = $usuario ? $usuario->id : null;
     ?>
     <div class="container mx-auto">
         <?php require '../src/_menu.php' ?>
@@ -156,12 +165,12 @@
                     </div>
                     <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
-                            <input type="checkbox" name="sin_valoracion" value="1">
+                            <input type="radio" name="sin_valoracion" value="1">
                             Mostrar sólo artículos sin valoración
                             <br>
-                            <input type="checkbox" name="mas_valoraciones" value="2">
+                            <input type="radio" name="mas_valoraciones" value="2">
                             Mostrar artículo/s con más valoraciones <br>
-                            <input type="checkbox" name="mayor_valoracion" value="3">
+                            <input type="radio" name="mayor_valoracion" value="3">
                             Mostrar sólo artículos con mayor valoración
                             <br>
                         </label>
@@ -178,7 +187,7 @@
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&etiqueta=<?= hh($etiqueta) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&etiqueta=<?= hh(implode(' ', $etiquetas)) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Añadir al carrito
                                 <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -194,21 +203,24 @@
                                 <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
                                     Valoración:
                                     <?php
+                                    $usuario = \App\Tablas\Usuario::logueado();
+                                    $usuario_id = $usuario ? $usuario->id : null;
+
                                     $sent3 = $pdo->prepare("SELECT *
-                                                            FROM valoraciones
-                                                            WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
-                                    $sent3->execute(['id_usuario' => $id_usuario, 'id_articulo' => $fila['id']]);
+                                                        FROM valoraciones
+                                                        WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id");
+                                    $sent3->execute(['usuario_id' => $usuario_id, 'articulo_id' => $fila['id']]);
                                     $valoracion_usuario = $sent3->fetch(PDO::FETCH_ASSOC);
                                     ?>
                                     <select name="valoracion" id="valoracion">
-                                        <option value="" <?= (!$id_usuario) ? 'selected' : '' ?>></option>
+                                        <option value="" <?= (!$usuario_id) ? 'selected' : '' ?>></option>
                                         <?php for ($i = 1; $i <= 5; $i++) : ?>
                                             <option value="<?= $i ?>" <?= ($valoracion_usuario && $valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
                                         <?php endfor ?>
                                     </select>
                                 </label>
                                 <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
-                                <input type="hidden" name="usuario_id" value="<?= $id_usuario ?>">
+                                <input type="hidden" name="usuario_id" value="<?= $usuario_id ?>">
 
                                 <?php if (!\App\Tablas\Usuario::esta_logueado()) : ?>
                                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" disabled>Votar</button>
@@ -221,21 +233,21 @@
                                     Valoración media:
                                     <?php
                                     $sent4 = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
-                                                            FROM valoraciones
-                                                            WHERE articulo_id = :id_articulo");
-                                    $sent4->execute(['id_articulo' => $fila['id']]);
+                                                        FROM valoraciones
+                                                        WHERE articulo_id = :articulo_id");
+                                    $sent4->execute(['articulo_id' => $fila['id']]);
                                     $valoracionMedia = $sent4->fetchColumn();
                                     ?>
                                     <p class="mb-3 pl-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($valoracionMedia) ?></p>
                                 </label>
                             </div>
                         </div>
-                        <button data-modal-toggle="insertar_comentario" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">
-                            <?php $articulo_id =  $fila['id']; ?>
-                            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-green dark:bg-gray-900 rounded-md group-hover:bg-opacity-1">
-                                Comentar
-                            </span>
-                        </button>
+
+                        <form action="comentar_articulo.php" method="POST" class="inline">
+                            <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
+                            <input type="hidden" name="usuario_id" value="<?= $usuario_id ?>">
+                            <button type="submit" onclick="cambiar(event, <?= $fila['id'] ?>, <?= $usuario_id ?>)" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900" data-modal-toggle="insertar_comentario">Comentar</button>
+                        </form>
                     </div>
                 <?php endforeach ?>
             </main>
@@ -285,18 +297,21 @@
                     <span class="sr-only">Cerrar ventana</span>
                 </button>
                 <div class="p-6 text-center">
-                    <form action="/comentar_articulo.php?articulo_id=<?= $articulo_id ?>&usuario_id=<?= $id_usuario ?>" method="POST">
+                    <form action="/comentar_articulo.php" method="POST">
                         <div class="mb-6">
                             <label for="comentario" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                 Comentario
+                                <textarea name="comentario" id="comentario" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required rows="5"></textarea>
                             </label>
-                            <textarea name="comentario" id="comentario" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600  dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required rows="5"></textarea>
+                            <input id="ocultoId" type="hidden" name="articulo_id">
+                            <input id="ocultoIdUsuario" type="hidden" name="usuario_id">
                         </div>
-                        <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                            Comentar
+                        <button data-modal-toggle="insertar_comentario" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                            Enviar
                         </button>
-                        <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
-                        <input type="hidden" name="usuario_id" value="<?= $id_usuario ?>">
+                        <button data-modal-toggle="insertar_comentario" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">
+                            No, cancelar
+                        </button>
                     </form>
                 </div>
             </div>
