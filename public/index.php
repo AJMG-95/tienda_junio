@@ -117,7 +117,7 @@
 
     $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid $cond $cond2 FROM articulos a
         JOIN categorias c ON (a.categoria_id = c.id)
-        JOIN articulos_etiquetas ae ON (a.id = ae.articulo_id 
+        JOIN articulos_etiquetas ae ON (a.id = ae.articulo_id
                                     OR a.id NOT IN (SELECT articulo_id FROM articulos_etiquetas ))
         JOIN etiquetas e ON (ae.etiqueta_id = e.id)
         $condicion
@@ -169,12 +169,12 @@
                     </div>
                     <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
-                            <input type="radio" name="sin_valoracion" value="1">
+                            <input type="checkbox" name="sin_valoracion" value="1">
                             Mostrar sólo artículos sin valoración
                             <br>
-                            <input type="radio" name="mas_valoraciones" value="2">
+                            <input type="checkbox" name="mas_valoraciones" value="2">
                             Mostrar artículo/s con más valoraciones <br>
-                            <input type="radio" name="mayor_valoracion" value="3">
+                            <input type="checkbox" name="mayor_valoracion" value="3">
                             Mostrar sólo artículos con mayor valoración
                             <br>
                         </label>
