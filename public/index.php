@@ -84,7 +84,7 @@
     $where_sin_valoracion = '';
 
     if ($sin_valoracion) {
-        $where_sin_valoracion = 'AND articulos.id NOT IN (SELECT DISTINCT articulo_id FROM valoraciones)';
+        $where_sin_valoracion = 'AND a.id NOT IN (SELECT DISTINCT articulo_id FROM valoraciones)';
     }
 
     $mas_valoraciones = isset($_GET['mas_valoraciones']) ? $_GET['mas_valoraciones'] : false;
@@ -95,7 +95,7 @@
 
     if ($mas_valoraciones) {
         $having_mas_valoraciones  = 'HAVING COUNT (usuario_id) >= ALL (SELECT DISTINCT COUNT (usuario_id) FROM valoraciones group by articulo_id)';
-        $condicion = 'JOIN valoraciones val ON (val.articulo_id = articulos.id)';
+        $condicion = 'JOIN valoraciones val ON (val.articulo_id = a.id)';
         $cond = ', count(usuario_id)';
     }
 
@@ -108,21 +108,25 @@
 
 
     if ($mayor_valoracion) {
-        $condicion2 = 'JOIN valoraciones val ON (val.articulo_id = articulos.id) ';
+        $condicion2 = 'JOIN valoraciones val ON (val.articulo_id = a.id) ';
         $condicion3 = 'ORDER BY AVG(valoracion) DESC LIMIT 1';
         $cond2 = ', AVG(valoracion)';
     }
 
+    $sin_etiqueta = '(SELECT articulo_id FROM articulos_etiquetas)';
 
-    $sent = $pdo->prepare("SELECT articulos.*, c.categoria, c.id as catid $cond $cond2 
-    FROM articulos
-    JOIN categorias c ON (articulos.categoria_id = c.id) 
-    LEFT JOIN articulos_etiquetas ae ON (articulos.id = ae.articulo_id)
-    LEFT JOIN etiquetas e ON (ae.etiqueta_id = e.id)
-    $where $where_sin_valoracion
-    GROUP BY articulos.id, c.categoria, c.id $condicion3
-    $having  $having_mas_valoraciones 
-       ");
+    $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid $cond $cond2 FROM articulos a
+        JOIN categorias c ON (a.categoria_id = c.id)
+        JOIN articulos_etiquetas ae ON (a.id = ae.articulo_id 
+                                    OR a.id NOT IN (SELECT articulo_id FROM articulos_etiquetas ))
+        JOIN etiquetas e ON (ae.etiqueta_id = e.id)
+        $condicion
+        $condicion2
+        $where
+        $where_sin_valoracion
+        GROUP BY a.id, c.categoria, c.id $condicion3
+        $having
+        $having_mas_valoraciones ");
 
     $sent->execute($execute);
 
@@ -274,7 +278,8 @@
                                         </td>
                                         <td class="py-4 px-6 text-center"><?= $cantidad ?></td>
                                     </tr>
-                                <?php endforeach   //lndlfnoi?>
+                                <?php endforeach   //lndlfnoi
+                                ?>
                             </tbody>
                         </table>
                     </div>
