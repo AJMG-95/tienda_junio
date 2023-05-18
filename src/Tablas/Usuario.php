@@ -23,6 +23,10 @@ class Usuario extends Modelo
         return $this->usuario == 'admin';
     }
 
+    public static function esAdmin($usuario) {
+        return $usuario == "admin";
+    }
+
     public static function esta_logueado(): bool
     {
         return isset($_SESSION['login']);
