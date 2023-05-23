@@ -1,4 +1,9 @@
-<?php session_start() ?>
+<?php
+
+use App\Tablas\Articulo;
+use App\Tablas\Etiqueta;
+
+session_start() ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -30,105 +35,59 @@
     $valoracion = obtener_get('valoracion');
     $precio_min = obtener_get('precio_min');
     $precio_max = obtener_get('precio_max');
+    $conSinValoracion = obtener_get('conSinValoracion');
+    $nAvgvaloracon = obtener_get('nAvgvaloracon');
 
-
-    $where = '';
-    $having = '';
+    $where = [];
     $execute = [];
-    $valid_etiquetas = [];
+    $having = "";
+    $order1 = "";
+    $order2 = "";
 
     $pdo = conectar();
 
-
-    if (isset($precio_min) && $precio_min != '') {
-        $where .= ' AND precio >= :precio_min';
-        $execute[':precio_min'] = $precio_min;
-    }
-
-    if (isset($precio_max) && $precio_max != '') {
-        $where .= ' AND precio <= :precio_max';
-        $execute[':precio_max'] = $precio_max;
-    }
-
-    // si se ha enviado algún valor para las etiquetas se separan por espacio utilizando la función explode() y se itera sobre cada una de las etiquetas
-    $etiquetas = isset($etiquetas) ? explode(" ", $etiquetas) : [];
-
-    foreach ($etiquetas as $etiqueta) {
-        //Para cada etiqueta, se prepara una consulta que busca su ID en la tabla "etiquetas" y se ejecuta con el valor de la etiqueta como parámetro.
-        //Si la consulta devuelve un resultado, se agrega la etiqueta al array $valid_etiquetas
-        $sent = $pdo->prepare("SELECT id FROM etiquetas WHERE lower(unaccent(etiqueta)) = lower(unaccent(:etiqueta))");
-        $sent->execute([':etiqueta' => $etiqueta]);
-        //se utiliza para comprobar si una consulta SQL devuelve resultados o no
-        if ($sent->fetchColumn() !== false) {
-            array_push($valid_etiquetas, $etiqueta);
-        }
-    }
-    //Si hay etiquetas válidas, se prepara una cláusula WHERE que busca los registros que contengan alguna de las etiquetas válidas utilizando la función implode()
-    // para unir las cláusulas en una sola cadena
-    if (!empty($valid_etiquetas)) {
-        $where_clauses = [];
-        foreach ($valid_etiquetas as $key => $etiqueta) {
-            $where_clauses[] = 'lower(unaccent(e.etiqueta)) LIKE lower(unaccent(:etiqueta' . $key . '))';
-            $execute[':etiqueta' . $key] = $etiqueta;
-        }
-        $where = 'WHERE (' . implode(' OR ', $where_clauses) . ')';
-        $having = 'HAVING COUNT(DISTINCT ae.etiqueta_id) = ' . count($valid_etiquetas); //cuenta las etiquetas en los registros y verifica que se hayan encontrado todas las etiquetas válidas
+    if (isset($etiquetas) && $etiquetas != '') {
+        $etiqueta_art_id = [];
+        $ids_etiquetas_validas =  Etiqueta::filtraEtiquetas($etiquetas, $pdo);
+        $etiqueta_art_id = Articulo::filtraArticuloEtiqueta($ids_etiquetas_validas, $pdo);
+        $where[] = "a.id IN (" . $etiqueta_art_id . ")";
     }
 
     if (isset($categoria) && $categoria != '') {
-        $where .= ' AND categoria_id = :categoria';
-        $execute[':categoria'] = $categoria;
+        $where[] = "c.id = " . $categoria;
     }
 
-    $sin_valoracion = isset($_GET['sin_valoracion']) ? $_GET['sin_valoracion'] : false;
-    $where_sin_valoracion = '';
-
-    if ($sin_valoracion) {
-        $where_sin_valoracion = 'AND a.id NOT IN (SELECT DISTINCT articulo_id FROM valoraciones)';
+    if (isset($precio_min) && $precio_min != '') {
+        $where[] = "a.precio >= " . $precio_min;
     }
 
-    $mas_valoraciones = isset($_GET['mas_valoraciones']) ? $_GET['mas_valoraciones'] : false;
-
-    $having_mas_valoraciones = '';
-    $cond = '';
-    $condicion = '';
-
-    if ($mas_valoraciones) {
-        $having_mas_valoraciones  = 'HAVING COUNT (usuario_id) >= ALL (SELECT DISTINCT COUNT (usuario_id) FROM valoraciones group by articulo_id)';
-        $condicion = 'JOIN valoraciones val ON (val.articulo_id = a.id)';
-        $cond = ', count(usuario_id)';
+    if (isset($precio_max) && $precio_max != '') {
+        $where[] = "a.precio <= " . $precio_max;
     }
 
-    $mayor_valoracion = isset($_GET['mayor_valoracion']) ? $_GET['mayor_valoracion'] : false;
-
-    $having_mayor_valoracion = '';
-    $cond2 = '';
-    $condicion2 = '';
-    $condicion3 = '';
-
-
-    if ($mayor_valoracion) {
-        $condicion2 = 'JOIN valoraciones val ON (val.articulo_id = a.id) ';
-        $condicion3 = 'ORDER BY AVG(valoracion) DESC LIMIT 1';
-        $cond2 = ', AVG(valoracion)';
+    if (isset($conSinValoracion) && $conSinValoracion != '') {
+        $where[] = $conSinValoracion;
     }
 
-    $sin_etiqueta = '(SELECT articulo_id FROM articulos_etiquetas)';
+    if (isset($nAvgvaloracon) && $nAvgvaloracon != '') {
+        if ($nAvgvaloracon == 'n') {
+            $order1 = ', COUNT(v.*) AS total_valoraciones';
+            $order2 = 'GROUP BY a.id, c.id ORDER BY COUNT(v.*) DESC';
+        } elseif ($nAvgvaloracon == 'avg') {
+            $order1 = ', CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion)';
+            $order2 = 'GROUP BY a.id, c.id ORDER BY CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion) DESC';
+        }
+    }
 
-    $sent = $pdo->prepare("SELECT a.*, c.categoria, c.id as catid $cond $cond2 FROM articulos a
-        JOIN categorias c ON (a.categoria_id = c.id)
-        JOIN articulos_etiquetas ae ON (a.id = ae.articulo_id
-                                    OR a.id NOT IN (SELECT articulo_id FROM articulos_etiquetas ))
-        JOIN etiquetas e ON (ae.etiqueta_id = e.id)
-        $condicion
-        $condicion2
-        $where
-        $where_sin_valoracion
-        GROUP BY a.id, c.categoria, c.id $condicion3
-        $having
-        $having_mas_valoraciones ");
+    $where = !empty($where) ?  'WHERE ' . implode(' AND ', $where) : "";
 
-    $sent->execute($execute);
+    $sent = $pdo->prepare("SELECT DISTINCT a.*, c.id AS catid, c.categoria $order1
+                            FROM articulos a
+                            JOIN categorias c ON (a.categoria_id = c.id)
+                            LEFT JOIN valoraciones v ON (a.id = v.articulo_id)
+                            $where
+                            $order2");
+    $sent->execute();
 
     ?>
     <div class="container mx-auto">
@@ -144,19 +103,19 @@
                             Categoría:
                             <select name="categoria" id="categoria" class="border text-sm rounded-lg w-full p-2.5">
                                 <?php
-                                $sent2 = $pdo->query("SELECT * FROM categorias");
+                                $sent_categoria = $pdo->query("SELECT * FROM categorias");
                                 ?>
                                 <option value="">Todas las categorías</option>
-                                <?php foreach ($sent2 as $fila) : ?>
-                                    <option value=<?= hh($fila['id']) ?> <?= ($fila['id'] == $categoria) ? 'selected' : '' ?>>
-                                        <?= hh($fila['categoria']) ?>
+                                <?php foreach ($sent_categoria as $filaCategoria) : ?>
+                                    <option value=<?= hh($filaCategoria['id']) ?> <?= ($filaCategoria['id'] == $categoria) ? 'selected' : '' ?>>
+                                        <?= hh($filaCategoria['categoria']) ?>
                                     </option>
                                 <?php endforeach ?>
                             </select>
                         </label>
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
                             Etiquetas:
-                            <input type="text" name="etiqueta" value="<?= isset($etiquetas) && is_array($etiquetas) ? implode(' ', $etiquetas) : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
+                            <input type="text" name="etiqueta" value="<?= isset($etiquetas) ? $etiquetas : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                         <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
                             Precio mínimo:
@@ -167,17 +126,26 @@
                             <input type="text" name="precio_max" value="<?= isset($precio_max) ? $precio_max : '' ?>" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
                     </div>
-                    <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
-                        <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
-                            <input type="checkbox" name="sin_valoracion" value="1">
-                            Mostrar sólo artículos sin valoración
-                            <br>
-                            <input type="checkbox" name="mas_valoraciones" value="2">
-                            Mostrar artículo/s con más valoraciones <br>
-                            <input type="checkbox" name="mayor_valoracion" value="3">
-                            Mostrar sólo artículos con mayor valoración
-                            <br>
-                        </label>
+                    <div class="flex w-auto">
+                        <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
+                            <label class="block mb-2 text-sm font-medium w-auto mr-3">
+                                <p>Mostrar sólo: </p>
+                                <input type="radio" name="conSinValoracion" value="v.articulo_id IS NULL">
+                                Artículos sin valoración <br>
+                                <input type="radio" name="conSinValoracion" value="v.articulo_id IS NOT NULL">
+                                Artículos valorados <br>
+                            </label>
+                        </div>
+                        <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
+                            <label class="block mb-2 text-sm font-medium w-auto ml-3">
+                                <p>Ordenar artículos por: </p>
+                                <input type="radio" name="nAvgvaloracon" value="n">
+                                Número de valoraciones <br>
+                                <input type="radio" name="nAvgvaloracon" value="avg">
+                                Mayor valoración media<br>
+                                <br>
+                            </label>
+                        </div>
                     </div>
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Buscar</button>
                 </fieldset>
@@ -185,13 +153,14 @@
         </div>
         <div class="flex">
             <main class="flex-1 grid grid-cols-3 gap-4 justify-center justify-items-center">
-                <?php foreach ($sent as $fila) : ?>
+                <?php foreach ($sent as $fila) :
+                ?>
                     <div class="p-6 max-w-xs min-w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?> - <?= hh($fila['precio']) ?> € </h5>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
-                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&etiqueta=<?= hh(implode(' ', $etiquetas)) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                            <a href="/insertar_en_carrito.php?id=<?= $fila['id'] ?>&categoria=<?= hh($categoria) ?>&etiquetas=<?= hh($etiquetas) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                                 Añadir al carrito
                                 <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                     <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
@@ -210,11 +179,11 @@
                                     $usuario = \App\Tablas\Usuario::logueado();
                                     $usuario_id = $usuario ? $usuario->id : null;
 
-                                    $sent3 = $pdo->prepare("SELECT *
-                                                        FROM valoraciones
-                                                        WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id");
-                                    $sent3->execute(['usuario_id' => $usuario_id, 'articulo_id' => $fila['id']]);
-                                    $valoracion_usuario = $sent3->fetch(PDO::FETCH_ASSOC);
+                                    $sent_valoraciones = $pdo->prepare("SELECT *
+                                                                        FROM valoraciones
+                                                                        WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id");
+                                    $sent_valoraciones->execute(['usuario_id' => $usuario_id, 'articulo_id' => $fila['id']]);
+                                    $valoracion_usuario = $sent_valoraciones->fetch(PDO::FETCH_ASSOC);
                                     ?>
                                     <select name="valoracion" id="valoracion">
                                         <option value="" <?= (!$usuario_id) ? 'selected' : '' ?>></option>
@@ -236,11 +205,11 @@
                                 <label class="block text-m font-medium pl-3 ml-3">
                                     Valoración media:
                                     <?php
-                                    $sent4 = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
-                                                        FROM valoraciones
-                                                        WHERE articulo_id = :articulo_id");
-                                    $sent4->execute(['articulo_id' => $fila['id']]);
-                                    $valoracionMedia = $sent4->fetchColumn();
+                                    $sent_valoracionMedia = $pdo->prepare("SELECT avg(valoracion)::numeric(10,2)
+                                                            FROM valoraciones
+                                                            WHERE articulo_id = :articulo_id");
+                                    $sent_valoracionMedia->execute(['articulo_id' => $fila['id']]);
+                                    $valoracionMedia = $sent_valoracionMedia->fetchColumn();
                                     ?>
                                     <p class="mb-3 pl-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($valoracionMedia) ?></p>
                                 </label>

@@ -19,21 +19,24 @@ class Etiqueta extends Modelo
         $this->etiqueta = $campos['etiqueta'];
     }
 
-    public static function consultaId(string $param, ?PDO $pdo = null)
+    public static function filtraEtiquetas(string $etiquetas, ?PDO $pdo = null) : array
     {
-        $sent = $pdo->prepare('SELECT id
-                                FROM  etiquetas
-                                WHERE unaccent(LOWER(e.etiqueta)) LIKE unaccent(LOWER(:etiqueta))');
-        $sent->execute([':etiqueta' => '%' . $param . '%']);
-        $idEtiqueta = $sent->fetch();
-        return $idEtiqueta ?: null;
-    }
+        $etiquetas = explode(' ', $etiquetas);
+        $idsEtiquetas = [];
 
-    public static function consultaEtiqueta(string $id, ?PDO $pdo = null)
-    {
-        $sent = $pdo->prepare('SELECT etiqueta FROM  etiquetas WHERE id = :id');
-        $sent->execute([':etiqueta' => $id]);
-        $etiqueta = $sent->fetch();
-        return $etiqueta ?: null;
+        foreach ($etiquetas as $etiqueta) {
+            $sent = $pdo->prepare("SELECT id
+                                FROM etiquetas
+                                WHERE unaccent(lower(etiqueta)) LIKE unaccent(lower(:etiqueta))");
+            $sent->execute([':etiqueta' => $etiqueta]);
+            $id = $sent->fetchColumn();
+
+            if ($id !== false) {
+                $idsEtiquetas[] = $id;
+            }
+        }
+
+        $idsEtiquetas = array_filter($idsEtiquetas);
+        return $idsEtiquetas ?: null;
     }
 }

@@ -11,8 +11,8 @@ $id_usuario = obtener_get('usuario_id');
 $pdo = conectar();
 
 $sent = $pdo->prepare("SELECT *
-                            FROM valoraciones
-                            WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
+                        FROM valoraciones
+                        WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
 $sent->execute([':id_usuario' => $id_usuario, ':id_articulo' => $id_articulo]);
 
 

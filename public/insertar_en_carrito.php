@@ -49,8 +49,6 @@ try {
     }
     
     
-    
-    
     $_SESSION['carrito'] = serialize($carrito);
 
     $params = "";
@@ -64,8 +62,8 @@ try {
     }
 
             
-    if ($etiqueta !== null) {
-        $params .= '&etiqueta=' . hh($etiqueta);
+    if ($etiquetas !== null) {
+        $params .= '&etiquetas=' . hh($etiquetas);
     }
 
     header("Location: /index.php?$params");

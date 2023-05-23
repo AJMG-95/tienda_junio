@@ -68,12 +68,33 @@ class Articulo extends Modelo
     public function getEtiquetaNombre(?PDO $pdo = null)
     {
         $pdo = $pdo ?? conectar();
-        $sent = $pdo->prepare("SELECT e.etiqueta 
+        $sent = $pdo->prepare("SELECT e.etiqueta
                                 FROM etiquetas e JOIN articulos_etiquetas ae ON (e.id = ae.etiqueta_id)
                                 WHERE ae.articulo_id = :articulo_id");
         $sent->execute(['articulo_id' => $this->id]);
         $etiquetas = $sent->fetchAll(PDO::FETCH_COLUMN);
         return implode(', ', $etiquetas);
+    }
+
+    public static function filtraArticuloEtiqueta(array $etiquetas, ?PDO $pdo = null): string
+    {
+        $nEtiquetas = sizeof($etiquetas);
+        $etiquetas = implode(",", $etiquetas);
+
+
+        $sql_etiquetas = $pdo->prepare("SELECT DISTINCT a.id
+                                FROM articulos a
+                                INNER JOIN articulos_etiquetas ae ON (a.id = ae.articulo_id)
+                                WHERE ae.etiqueta_id IN ($etiquetas)
+                                GROUP BY a.id
+                                HAVING COUNT(ae.etiqueta_id) >= $nEtiquetas");
+        $sql_etiquetas->execute();
+        $resultado = $sql_etiquetas->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($resultado as $res) {
+            $etiqueta_art_id[] = $res['id'];
+        }
+        $etiqueta_art_id = implode(", ", $etiqueta_art_id);
+        return $etiqueta_art_id;
     }
 
 }
