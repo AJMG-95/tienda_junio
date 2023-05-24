@@ -75,8 +75,9 @@ DROP TABLE IF EXISTS reclamaciones CASCADE;
 CREATE TABLE reclamaciones (
     fecha_creacion  timestamp   NOT NULL DEFAULT localtimestamp(0),
     reclamacion     varchar(255),
+    imagen          BYTEA,
     usuario_id      bigint      NOT NULL REFERENCES usuarios (id),
-    factura_id     bigint      NOT NULL REFERENCES articulos(id),
+    factura_id      bigint      NOT NULL REFERENCES articulos(id),
     PRIMARY KEY (factura_id, usuario_id)
 );
 

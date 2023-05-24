@@ -48,7 +48,7 @@ session_start() ?>
 
     if (isset($etiquetas) && $etiquetas != '') {
         $etiqueta_art_id = [];
-        $ids_etiquetas_validas =  Etiqueta::filtraEtiquetas($etiquetas, $pdo);
+        $ids_etiquetas_validas = Etiqueta::filtraEtiquetas($etiquetas, $pdo);
         $etiqueta_art_id = Articulo::filtraArticuloEtiqueta($ids_etiquetas_validas, $pdo);
         $where[] = "a.id IN (" . $etiqueta_art_id . ")";
     }

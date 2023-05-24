@@ -25,6 +25,11 @@ function obtener_post($par)
     return obtener_parametro($par, $_POST);
 }
 
+function obtener_file($par, $key)
+{
+    return $_FILES[$par][$key];
+}
+
 function obtener_parametro($par, $array)
 {
     return isset($array[$par]) ? trim($array[$par]) : null;
