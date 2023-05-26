@@ -32,9 +32,10 @@ CREATE TABLE articulos_etiquetas (
 
 DROP TABLE IF EXISTS valoraciones CASCADE;
 CREATE TABLE valoraciones (
-    articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
-    usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
-    valoracion  int     CHECK (valoracion >= 1 AND valoracion <= 5),
+    articulo_id bigint      NOT NULL REFERENCES  articulos   (id),
+    usuario_id  bigint      NOT NULL REFERENCES  usuarios    (id),
+    valoracion  int         CHECK (valoracion >= 1 AND valoracion <= 5),
+    created_at  timestamp   NOT NULL DEFAULT localtimestamp(0),
     PRIMARY KEY (articulo_id, usuario_id)
 );
 
@@ -58,7 +59,6 @@ CREATE TABLE usuarios (
 DROP TABLE IF EXISTS facturas CASCADE;
 CREATE TABLE facturas (
     id         bigserial  PRIMARY KEY,
-    fecha_creacion  timestamp   NOT NULL DEFAULT localtimestamp(0),
     created_at timestamp  NOT NULL DEFAULT localtimestamp(0),
     usuario_id bigint NOT NULL REFERENCES usuarios (id)
 );

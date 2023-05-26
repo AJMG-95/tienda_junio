@@ -11,7 +11,6 @@ class Factura extends Modelo
     public $id;
     public $created_at;
     public $usuario_id;
-    public $fecha_creacion;
     private $total;
 
     public function __construct(array $campos)
@@ -19,7 +18,6 @@ class Factura extends Modelo
         $this->id = $campos['id'];
         $this->created_at = $campos['created_at'];
         $this->usuario_id = $campos['usuario_id'];
-        $this->fecha_creacion = $campos['fecha_creacion'];
         $this->total = isset($campos['total']) ? $campos['total'] : null;
     }
 

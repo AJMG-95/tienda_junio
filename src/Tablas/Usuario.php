@@ -18,6 +18,11 @@ class Usuario extends Modelo
         $this->validado = $campos['validado'];
     }
 
+    public function getNombre()
+    {
+        return $this->usuario;
+    }
+
     public function es_admin(): bool
     {
         return $this->usuario == 'admin';
@@ -42,7 +47,7 @@ class Usuario extends Modelo
         $pdo = $pdo ?? conectar();
 
         $sent = $pdo->prepare('SELECT *
-                                 FROM usuarios
+                                FROM usuarios
                                 WHERE usuario = :login');
         $sent->execute([':login' => $login]);
         $fila = $sent->fetch(PDO::FETCH_ASSOC);

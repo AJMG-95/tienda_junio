@@ -58,8 +58,9 @@ class Articulo extends Modelo
         return $this->id;
     }
 
-    public function getCategoriaNombre(PDO $pdo)
+    public function getCategoriaNombre(?PDO $pdo = null)
     {
+        $pdo = $pdo ?? conectar();
         $sent = $pdo->prepare("SELECT categoria FROM categorias WHERE id = :categoria_id");
         $sent->execute(['categoria_id' => $this->categoria_id]);
         return $sent->fetchColumn();
@@ -74,6 +75,20 @@ class Articulo extends Modelo
         $sent->execute(['articulo_id' => $this->id]);
         $etiquetas = $sent->fetchAll(PDO::FETCH_COLUMN);
         return implode(', ', $etiquetas);
+    }
+
+    public function getValoracionMedia(?PDO $pdo = null)
+    {
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare("SELECT ROUND(AVG(valoracion), 2) FROM valoraciones WHERE articulo_id = :id");
+        $sent->execute([':id' => $this->id]);
+        $avg = $sent->fetchColumn();
+
+        if ($avg == false) {
+            return 'Sin valorar';
+        }
+
+        return $avg;
     }
 
     public static function filtraArticuloEtiqueta(array $etiquetas, ?PDO $pdo = null): string

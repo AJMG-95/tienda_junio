@@ -1,4 +1,8 @@
-<?php session_start() ?>
+<?php
+
+use function PHPSTORM_META\type;
+
+ session_start() ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -18,26 +22,31 @@
     }
 
     $carrito = unserialize(carrito());
+    $ids_art_carrito = implode(', ', $carrito->getIds());
+    $where = "WHERE id IN (" . $ids_art_carrito . ")";
 
     if (obtener_post('_testigo') !== null) {
         $pdo = conectar();
-        $sent = $pdo->prepare('SELECT *
-                                 FROM articulos
-                                WHERE id IN (:ids)');
-        $sent->execute([':ids' => implode(', ', $carrito->getIds())]);
-        foreach ($sent->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+        $sent = $pdo->prepare("SELECT *
+                                FROM articulos
+                                $where");
+        $sent->execute();
+        $res = $sent->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($res as $fila) {
             if ($fila['stock'] < $carrito->getLinea($fila['id'])->getCantidad()) {
                 $_SESSION['error'] = 'No hay existencias suficientes para crear la factura.';
                 return volver();
             }
         }
+
         // Crear factura
         $usuario = \App\Tablas\Usuario::logueado();
         $usuario_id = $usuario->id;
         $pdo->beginTransaction();
         $sent = $pdo->prepare('INSERT INTO facturas (usuario_id)
-                               VALUES (:usuario_id)
-                               RETURNING id');
+                                VALUES (:usuario_id)
+                                RETURNING id');
         $sent->execute([':usuario_id' => $usuario_id]);
         $factura_id = $sent->fetchColumn();
         $lineas = $carrito->getLineas();
