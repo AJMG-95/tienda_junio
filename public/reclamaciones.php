@@ -29,7 +29,7 @@
     $usuario_id = obtener_get('id');
 
     $pdo = conectar();
-    $sent = $pdo->prepare("SELECT r.*, f.fecha_creacion as fecha_factura
+    $sent = $pdo->prepare("SELECT r.*, f.created_at as fecha_factura
                         FROM reclamaciones r
                         JOIN facturas f ON (f.id = r.factura_id)
                         WHERE r.usuario_id = :id
