@@ -9,6 +9,7 @@ require '../vendor/autoload.php';
 $categoria = obtener_get('categoria');
 $nombre = obtener_get('nombre');
 $etiqueta = obtener_get('etiqueta');
+$url = obtener_get('url');
 
 try {
     $id = obtener_get('id');
@@ -65,6 +66,8 @@ try {
     if ($etiquetas !== null) {
         $params .= '&etiquetas=' . hh($etiquetas);
     }
+
+
 
     header("Location: /index.php?$params");
 } catch (ValueError $e) {

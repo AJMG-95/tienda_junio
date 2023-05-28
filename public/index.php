@@ -37,6 +37,9 @@ session_start() ?>
     $precio_max = obtener_get('precio_max');
     $conSinValoracion = obtener_get('conSinValoracion');
     $nAvgvaloracon = obtener_get('nAvgvaloracon');
+    $usuario = \App\Tablas\Usuario::logueado();
+    $usuario_id = $usuario ? $usuario->id : null;
+
 
     $where = [];
     $execute = [];
@@ -76,9 +79,9 @@ session_start() ?>
         } elseif ($nAvgvaloracon == 'avg') {
             $order1 = ', CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion)';
             $order2 = 'GROUP BY a.id, c.id ORDER BY CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion) DESC';
-        } else {
-            $order2 = 'ORDER BY a.descripcion';
         }
+    } else {
+        $order2 = 'ORDER BY a.descripcion';
     }
 
     $where = !empty($where) ?  'WHERE ' . implode(' AND ', $where) : "";
@@ -176,21 +179,19 @@ session_start() ?>
                         <div class="flex mb-3 font-normal text-gray-700 dark:text-gray-400">
                             <form action="valorar_articulo.php" method="GET">
                                 <label class="block mb-2 text-sm font-medium w-1/4 pr-4">
-                                    Valoración:
+                                    Valorar:
                                     <?php
-                                    $usuario = \App\Tablas\Usuario::logueado();
-                                    $usuario_id = $usuario ? $usuario->id : null;
-
                                     $sent_valoraciones = $pdo->prepare("SELECT *
                                                                         FROM valoraciones
-                                                                        WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id");
+                                                                        WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id
+                                                                        ORDER BY created_at DESC LIMIT 1");
                                     $sent_valoraciones->execute(['usuario_id' => $usuario_id, 'articulo_id' => $fila['id']]);
                                     $valoracion_usuario = $sent_valoraciones->fetch(PDO::FETCH_ASSOC);
                                     ?>
                                     <select name="valoracion" id="valoracion">
                                         <option value="" <?= (!$usuario_id) ? 'selected' : '' ?>></option>
                                         <?php for ($i = 1; $i <= 5; $i++) : ?>
-                                            <option value="<?= $i ?>" <?= ($valoracion_usuario && $valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
+                                            <option value="<?= $i ?>" <?= ($valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
                                         <?php endfor ?>
                                     </select>
                                 </label>
@@ -218,13 +219,15 @@ session_start() ?>
                             </div>
                         </div>
 
-                        <form action="comentar_articulo.php" method="POST" class="inline">
-                            <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
-                            <input type="hidden" name="usuario_id" value="<?= $usuario_id ?>">
-                            <button type="submit" onclick="cambiar(event, <?= $fila['id'] ?>, <?= $usuario_id ?>)" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900" data-modal-toggle="insertar_comentario">Comentar</button>
-                        </form>
+                        <?php if (\App\Tablas\Usuario::esta_logueado()) : ?>
+                            <form action="comentar_articulo.php" method="POST" class="inline">
+                                <input type="hidden" name="articulo_id" value="<?= $fila['id'] ?>">
+                                <input type="hidden" name="usuario_id" value="<?= $usuario_id ?>">
+                                <button type="submit" onclick="cambiar(event, <?= $fila['id'] ?>, <?= $usuario_id ?>)" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900" data-modal-toggle="insertar_comentario">Comentar</button>
+                            </form>
+                        <?php endif ?>
 
-                        <a href="/vista_detalle.php?id=<?= hh($fila['id'])?>&usuario=<?= hh($usuario_id) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <a href="/vista_detalle.php?id=<?= hh($fila['id']) ?>&usuario=<?= hh($usuario_id) ?>" class="inline-flex items-center py-2 px-3.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                             Ver producto
                             <svg aria-hidden="true" class="ml-3 -mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>

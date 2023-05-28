@@ -66,6 +66,14 @@ class Articulo extends Modelo
         return $sent->fetchColumn();
     }
 
+    public function getCategoriaId(?PDO $pdo = null)
+    {
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare("SELECT id FROM categorias WHERE id = :categoria_id");
+        $sent->execute(['categoria_id' => $this->categoria_id]);
+        return $sent->fetchColumn();
+    }
+
     public function getEtiquetaNombre(?PDO $pdo = null)
     {
         $pdo = $pdo ?? conectar();

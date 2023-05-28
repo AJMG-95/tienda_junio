@@ -10,7 +10,13 @@ $usuario_id = obtener_post('usuario_id'); // Suponiendo que ya tienes el ID del 
 
 $pdo = conectar();
 
-// Verificar si el usuario ya ha comentado en la tabla de comentarios
+if(isset($comentario) && $comentario != ''){
+    $sent = $pdo->prepare("INSERT INTO comentarios (comentario, usuario_id, articulo_id) VALUES (:comentario, :usuario_id, :articulo_id)");
+    $sent->execute(['comentario' => $comentario, 'usuario_id' => $usuario_id, 'articulo_id' => $articulo_id]);
+}
+
+//Esto reescribía el comentario
+/* // Verificar si el usuario ya ha comentado en la tabla de comentarios
 $sent = $pdo->prepare("SELECT * FROM comentarios WHERE usuario_id = :usuario_id AND articulo_id = :articulo_id");
 $sent->execute(['usuario_id' => $usuario_id, 'articulo_id' => $articulo_id]);
 
@@ -23,6 +29,6 @@ if ($sent->rowCount() > 0) {
     $sent = $pdo->prepare("INSERT INTO comentarios (comentario, usuario_id, articulo_id) VALUES (:comentario, :usuario_id, :articulo_id)");
     $sent->execute(['comentario' => $comentario, 'usuario_id' => $usuario_id, 'articulo_id' => $articulo_id]);
 }
-
+ */
 // Redirigir al usuario a la página del artículo
 volver();

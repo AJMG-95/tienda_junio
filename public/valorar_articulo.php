@@ -16,7 +16,13 @@ $sent = $pdo->prepare("SELECT *
 $sent->execute([':id_usuario' => $id_usuario, ':id_articulo' => $id_articulo]);
 
 
-if (isset($valoracion) && $valoracion != '' &&  $valoracion != null) {
+if (isset($valoracion) && $valoracion != '') {
+    $sent = $pdo->prepare("INSERT INTO valoraciones (articulo_id, usuario_id, valoracion) VALUES (:articulo_id, :usuario_id, :valoracion)");
+    $sent->execute([':valoracion' => $valoracion, ':usuario_id' => $id_usuario, ':articulo_id' => $id_articulo]);
+}
+
+//Esto sobre escribía la valoración anterior
+/* if (isset($valoracion) && $valoracion != '' &&  $valoracion != null) {
     if ($sent->rowCount() > 0) {
         $sent = $pdo->prepare("UPDATE valoraciones
                                 SET valoracion = :valoracion
@@ -31,6 +37,6 @@ if (isset($valoracion) && $valoracion != '' &&  $valoracion != null) {
     $sent = $pdo -> prepare("DELETE FROM valoraciones
                                     WHERE usuario_id = :id_usuario AND articulo_id = :id_articulo");
     $sent->execute([':id_usuario' => $id_usuario, ':id_articulo' => $id_articulo]);
-}
+} */
 
 volver();

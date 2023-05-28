@@ -40,6 +40,7 @@ function volver()
     header('Location: /index.php');
 }
 
+
 function carrito()
 {
     if (!isset($_SESSION['carrito'])) {

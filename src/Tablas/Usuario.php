@@ -23,6 +23,11 @@ class Usuario extends Modelo
         return $this->usuario;
     }
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
     public function es_admin(): bool
     {
         return $this->usuario == 'admin';
@@ -52,7 +57,7 @@ class Usuario extends Modelo
         $sent->execute([':login' => $login]);
         $fila = $sent->fetch(PDO::FETCH_ASSOC);
 
-        if ($fila === false) {
+        if ($fila == false) {
             return false;
         }
 

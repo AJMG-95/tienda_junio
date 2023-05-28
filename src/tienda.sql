@@ -36,7 +36,7 @@ CREATE TABLE valoraciones (
     usuario_id  bigint      NOT NULL REFERENCES  usuarios    (id),
     valoracion  int         CHECK (valoracion >= 1 AND valoracion <= 5),
     created_at  timestamp   NOT NULL DEFAULT localtimestamp(0),
-    PRIMARY KEY (articulo_id, usuario_id)
+    PRIMARY KEY (articulo_id, usuario_id, created_at)
 );
 
 DROP TABLE IF EXISTS comentarios CASCADE;
@@ -45,7 +45,7 @@ CREATE TABLE comentarios (
     articulo_id bigint  NOT NULL REFERENCES  articulos   (id),
     usuario_id  bigint  NOT NULL REFERENCES  usuarios    (id),
     comentario  varchar(255),
-    PRIMARY KEY (articulo_id, usuario_id)
+    PRIMARY KEY (articulo_id, usuario_id, fecha_creacion)
 );
 
 DROP TABLE IF EXISTS usuarios CASCADE;
