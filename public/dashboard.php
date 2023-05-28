@@ -35,6 +35,7 @@ session_start() ?>
 
     <div class="container mx-auto">
         <?php require_once '../src/_menu.php' ?>
+        <?php require '../src/_alerts.php' ?>
         <div class="overflow-y-auto py-4 px-3 bg-gray-50 rounded dark:bg-gray-800">
             <a href="reclamaciones.php?id=<?= $usuario_id ?>" class="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-4 py-2 mr-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-900">
                 <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-green dark:bg-gray-900 rounded-md group-hover:bg-opacity-1">

@@ -78,7 +78,7 @@ CREATE TABLE reclamaciones (
     imagen          BYTEA,
     usuario_id      bigint      NOT NULL REFERENCES usuarios (id),
     factura_id      bigint      NOT NULL REFERENCES articulos(id),
-    PRIMARY KEY (factura_id, usuario_id)
+    PRIMARY KEY (factura_id, usuario_id, fecha_creacion)
 );
 
 -- Carga inicial de datos de prueba:
