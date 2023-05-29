@@ -102,18 +102,33 @@ session_start() ?>
                         $cantidad = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
                         $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
+                        $importe_original = $cantidad * $precio;
+                        $importe = 0;
+
                         switch ($oferta) {
                             case '2x1':
+                                $unidadesCompletas = floor($cantidad / 2);
+                                $unidadesIndividuales = $cantidad % 2;
+                                $importe = ($precio * $unidadesCompletas) + ($unidadesIndividuales * $precio);
                                 break;
                             case '50%':
+                                $importe = ($importe_original) / 2;
                                 break;
                             case '2ª Unidad a mitad de precio':
+                                for ($i = 1; $i <= $cantidad; $i++) {
+                                    if ($i % 2 !== 0) {
+                                        $importe += $precio;
+                                    } else {
+                                        $importe += $precio / 2;
+                                    }
+                                }
                                 break;
                             default:
-                                $ahorro = 0;
+                                $importe = $importe_original;
                                 break;
                         }
-                        $importe = $cantidad * $precio;
+
+                        $ahorro = $importe_original - $importe;
                         $total += $importe;
                         ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">

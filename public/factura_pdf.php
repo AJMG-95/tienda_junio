@@ -36,11 +36,39 @@ foreach ($factura->getLineas($pdo) as $linea) {
     $descripcion = $articulo->getDescripcion();
     $cantidad = $linea->getCantidad();
     $precio = $articulo->getPrecio();
-    $importe = $cantidad * $precio;
+    $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
+    $importe_original = $cantidad * $precio;
+    $importe = 0;
+    switch ($oferta) {
+        case '2x1':
+            $unidadesCompletas = floor($cantidad / 2);
+            $unidadesIndividuales = $cantidad % 2;
+            $importe = ($precio * $unidadesCompletas) + ($unidadesIndividuales * $precio);
+            break;
+        case '50%':
+            $importe = ($importe_original) / 2;
+            break;
+        case '2ª Unidad a mitad de precio':
+            for ($i = 1; $i <= $cantidad; $i++) {
+                if ($i % 2 !== 0) {
+                    $importe += $precio;
+                } else {
+                    $importe += $precio / 2;
+                }
+            }
+            break;
+        default:
+            $importe = $importe_original;
+            break;
+    }
+    $ahorro = $importe_original - $importe;
     $total += $importe;
+
     $precio = dinero($precio);
     $importe = dinero($importe);
-
+    $ahorro = dinero($ahorro);
+    $total = dinero($total);
+    
     $filas_tabla .= <<<EOF
         <tr>
             <td>$codigo</td>
@@ -48,11 +76,13 @@ foreach ($factura->getLineas($pdo) as $linea) {
             <td>$cantidad</td>
             <td>$precio</td>
             <td>$importe</td>
+            <td>$ahorro</td>
+            <td>$oferta</td>
         </tr>
     EOF;
 }
 
-$total = dinero($total);
+
 
 $res = <<<EOT
 <p>Factura número: {$factura->id}</p>
@@ -64,6 +94,8 @@ $res = <<<EOT
         <th>Cantidad</th>
         <th>Precio</th>
         <th>Importe</th>
+        <td>Ahorro</td>
+        <td>Oferta</td>
     </tr>
     <tbody>
         $filas_tabla

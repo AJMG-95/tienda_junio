@@ -34,7 +34,7 @@ if (isset($reclamacion_txt) && $reclamacion_txt != '') {
     $execute[':reclamacion'] = $reclamacion_txt;
 }
 
-if (isset($reclamacion_img_nombre) && $reclamacion_img_nombre != '') {
+if (isset($reclamacion_img) && $reclamacion_img != '') {
     $values[] = ':imagen';
     $execute[':imagen'] = $ruta_destino;
 }
@@ -52,11 +52,15 @@ if (isset($factura_id) && $factura_id != '') {
 $values = !empty($values) ? 'VALUES (' . implode(' , ', $values) . ')'  : '';
 
 try {
-    $sent = $pdo->prepare("INSERT INTO reclamaciones (reclamacion, imagen, usuario_id, factura_id) $values");
-    $sent->execute($execute);
+    if(isset($reclamacion_img) && $reclamacion_img != '') {
+        $sent = $pdo->prepare("INSERT INTO reclamaciones (reclamacion, imagen, usuario_id, factura_id) $values");
+        $sent->execute($execute);
+    } else {
+        $sent = $pdo->prepare("INSERT INTO reclamaciones (reclamacion, usuario_id, factura_id) $values");
+        $sent->execute($execute);
+    }
     $_SESSION['exito'] = 'La reclamacion se ha insertado correctamente.';
 } catch (\Throwable $th) {
-    $_SESSION['error'] = 'Debe rellenar todos los campos';
     print_r($th);
     die();
 }
