@@ -3,12 +3,13 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 
 DROP TABLE IF EXISTS articulos CASCADE;
 CREATE TABLE articulos (
-    id          bigserial     PRIMARY KEY,
-    codigo      varchar(13)   NOT NULL UNIQUE,
-    descripcion varchar(255)  NOT NULL,
-    precio      numeric(7, 2) NOT NULL,
-    stock       int           NOT NULL,
-    categoria_id bigint       NOT NULL REFERENCES categorias (id)
+    id           bigserial     PRIMARY KEY,
+    codigo       varchar(13)   NOT NULL UNIQUE,
+    descripcion  varchar(255)  NOT NULL,
+    precio       numeric(7, 2) NOT NULL,
+    stock        int           NOT NULL,
+    categoria_id bigint       NOT NULL REFERENCES categorias (id),
+    oferta_id    bigint       REFERENCES ofertas (id)
 );
 
 DROP TABLE IF EXISTS categorias CASCADE;
@@ -81,15 +82,22 @@ CREATE TABLE reclamaciones (
     PRIMARY KEY (factura_id, usuario_id, fecha_creacion)
 );
 
+DROP TABLE IF EXISTS ofertas CASCADE;
+CREATE TABLE ofertas (
+    id          bigserial PRIMARY KEY,
+    oferta      varchar(255) UNIQUE NOT NULL
+);
+
+
 -- Carga inicial de datos de prueba:
 
-INSERT INTO articulos (codigo, descripcion, precio, stock, categoria_id)
-    VALUES ('18273892389', 'Yogur piña', 2.50, 20, 2),
-           ('83745828273', 'Tigretón', 1.10, 30, 2),
-           ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15, 1),
-           ('51786128435', 'Disco duro M2 500 GB', 180.30, 0, 1),
-           ('83745228673', 'Chandal', 30.10, 15, 3),
-           ('51786198495', 'Traje', 250.30, 1, 3);
+INSERT INTO articulos (codigo, descripcion, precio, stock, categoria_id, oferta_id)
+    VALUES ('18273892389', 'Yogur piña', 2.50, 20, 2, 1),
+           ('83745828273', 'Tigretón', 1.10, 30, 2, NULL),
+           ('51736128495', 'Disco duro SSD 500 GB', 150.30, 15, 1, 3),
+           ('51786128435', 'Disco duro M2 500 GB', 180.30, 0, 1, NULL),
+           ('83745228673', 'Chandal', 30.10, 15, 3, 2),
+           ('51786198495', 'Traje', 250.30, 1, 3, NULL);
 
 INSERT INTO usuarios (usuario, password, validado)
     VALUES ('admin', crypt('admin', gen_salt('bf', 10)), true),
@@ -124,3 +132,8 @@ INSERT INTO articulos_etiquetas (articulo_id, etiqueta_id)
             (5, 3),
             (5, 8),
             (6, 8);
+
+INSERT INTO ofertas (oferta) VALUES
+    ('2x1'),
+    ('50%'),
+    ('2ª Unidad a mitad de precio');

@@ -39,4 +39,10 @@ if (isset($valoracion) && $valoracion != '') {
     $sent->execute([':id_usuario' => $id_usuario, ':id_articulo' => $id_articulo]);
 } */
 
-volver();
+if (isset($_SESSION['vistaDetalle'])) {
+    $url = $_SESSION['vistaDetalle'];
+    header("Location: $url");
+} else {
+    volver();
+}
+

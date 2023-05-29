@@ -15,7 +15,7 @@ class Articulo extends Modelo
     private $precio;
     private $stock;
     private $categoria_id;
-    private Etiqueta $etiqueta;
+    private $oferta_id;
 
     public function __construct(array $campos)
     {
@@ -25,7 +25,9 @@ class Articulo extends Modelo
         $this->precio = $campos['precio'];
         $this->stock = $campos['stock'];
         $this->categoria_id = $campos['categoria_id'];
-        $this->etiqueta = Etiqueta::obtener($campos['id']);
+        $this->oferta_id = $campos['oferta_id'];
+
+
     }
 
     public static function existe(int $id, ?PDO $pdo = null): bool
@@ -74,6 +76,14 @@ class Articulo extends Modelo
         return $sent->fetchColumn();
     }
 
+    public function getOferta(?PDO $pdo = null)
+    {
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare("SELECT oferta FROM ofertas WHERE id = :oferta_id");
+        $sent->execute(['oferta_id' => $this->oferta_id]);
+        return $sent->fetchColumn();
+    }
+
     public function getEtiquetaNombre(?PDO $pdo = null)
     {
         $pdo = $pdo ?? conectar();
@@ -84,6 +94,7 @@ class Articulo extends Modelo
         $etiquetas = $sent->fetchAll(PDO::FETCH_COLUMN);
         return implode(', ', $etiquetas);
     }
+
 
     public function getValoracionMedia(?PDO $pdo = null)
     {

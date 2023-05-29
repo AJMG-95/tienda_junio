@@ -2,7 +2,7 @@
 
 use function PHPSTORM_META\type;
 
- session_start() ?>
+session_start() ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -90,6 +90,8 @@ use function PHPSTORM_META\type;
                     <th scope="col" class="py-3 px-6">Cantidad</th>
                     <th scope="col" class="py-3 px-6">Precio</th>
                     <th scope="col" class="py-3 px-6">Importe</th>
+                    <th scope="col" class="py-3 px-6">Ahorro</th>
+                    <th scope="col" class="py-3 px-6">Oferta</th>
                 </thead>
                 <tbody>
                     <?php $total = 0 ?>
@@ -99,6 +101,18 @@ use function PHPSTORM_META\type;
                         $codigo = $articulo->getCodigo();
                         $cantidad = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
+                        $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
+                        switch ($oferta) {
+                            case '2x1':
+                                break;
+                            case '50%':
+                                break;
+                            case '2ª Unidad a mitad de precio':
+                                break;
+                            default:
+                                $ahorro = 0;
+                                break;
+                        }
                         $importe = $cantidad * $precio;
                         $total += $importe;
                         ?>
@@ -106,12 +120,10 @@ use function PHPSTORM_META\type;
                             <td class="py-4 px-6"><?= $articulo->getCodigo() ?></td>
                             <td class="py-4 px-6"><?= $articulo->getDescripcion() ?></td>
                             <td class="py-4 px-6 text-center"><?= $cantidad ?></td>
-                            <td class="py-4 px-6 text-center">
-                                <?= dinero($precio) ?>
-                            </td>
-                            <td class="py-4 px-6 text-center">
-                                <?= dinero($importe) ?>
-                            </td>
+                            <td class="py-4 px-6 text-center"><?= dinero($precio) ?></td>
+                            <td class="py-4 px-6 text-center"><?= dinero($importe) ?></td>
+                            <td class="py-4 px-6 text-center"><?= dinero($ahorro) ?></td>
+                            <td class="py-4 px-6 text-center"><?= $oferta ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

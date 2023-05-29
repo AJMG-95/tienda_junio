@@ -30,6 +30,8 @@ session_start() ?>
     require '../vendor/autoload.php';
 
     $carrito = unserialize(carrito());
+    unset($_SESSION['vistaDetalle']);
+    
     $categoria = obtener_get('categoria');
     $etiquetas = obtener_get('etiqueta');
     $valoracion = obtener_get('valoracion');
@@ -75,20 +77,21 @@ session_start() ?>
     if (isset($nAvgvaloracon) && $nAvgvaloracon != '') {
         if ($nAvgvaloracon == 'n') {
             $order1 = ', COUNT(v.*) AS total_valoraciones';
-            $order2 = 'GROUP BY a.id, c.id ORDER BY COUNT(v.*) DESC';
+            $order2 = 'GROUP BY o.oferta, a.id, c.id ORDER BY COUNT(v.*) DESC, o.oferta';
         } elseif ($nAvgvaloracon == 'avg') {
             $order1 = ', CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion)';
-            $order2 = 'GROUP BY a.id, c.id ORDER BY CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion) DESC';
+            $order2 = 'GROUP BY o.oferta, a.id, c.id ORDER BY CASE WHEN AVG(v.valoracion) IS NULL THEN 1 ELSE 0 END, AVG(v.valoracion) DESC, o.oferta';
         }
     } else {
-        $order2 = 'ORDER BY a.descripcion';
+        $order2 = 'ORDER BY a.oferta_id, a.descripcion';
     }
 
     $where = !empty($where) ?  'WHERE ' . implode(' AND ', $where) : "";
 
-    $sent = $pdo->prepare("SELECT DISTINCT a.*, c.id AS catid, c.categoria $order1
+    $sent = $pdo->prepare("SELECT DISTINCT a.*, c.id AS catid, c.categoria, o.oferta $order1
                             FROM articulos a
                             JOIN categorias c ON (a.categoria_id = c.id)
+                            LEFT JOIN ofertas o ON (o.id = a.oferta_id)
                             LEFT JOIN valoraciones v ON (a.id = v.articulo_id)
                             $where
                             $order2");
@@ -162,6 +165,7 @@ session_start() ?>
                 ?>
                     <div class="p-6 max-w-xs min-w-full bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
                         <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white"><?= hh($fila['descripcion']) ?> - <?= hh($fila['precio']) ?> € </h5>
+                        <h6 class="mb-2 text-2xl tracking-tight text-red-700"><?= hh($fila['oferta']) ?></h6>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400"><?= hh($fila['categoria']) ?></p>
                         <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Existencias: <?= hh($fila['stock']) ?></p>
                         <?php if ($fila['stock'] > 0) : ?>
@@ -236,7 +240,6 @@ session_start() ?>
                     </div>
                 <?php endforeach ?>
             </main>
-
             <?php if (!$carrito->vacio()) : ?>
                 <aside class="flex flex-col items-center w-1/4" aria-label="Sidebar">
                     <div class="overflow-y-auto py-4 px-3 bg-gray-50 rounded dark:bg-gray-800">

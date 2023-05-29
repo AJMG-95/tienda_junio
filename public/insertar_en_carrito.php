@@ -69,7 +69,12 @@ try {
 
 
 
-    header("Location: /index.php?$params");
+    if (isset($_SESSION['vistaDetalle'])) {
+        $url = $_SESSION['vistaDetalle'];
+        header("Location: $url");
+    } else {
+        header("Location: /index.php?$params");
+    }
 } catch (ValueError $e) {
     // TODO: mostrar mensaje de error en un Alert
     volver();
