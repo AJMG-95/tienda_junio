@@ -25,7 +25,7 @@ session_start() ?>
     $usuario = \App\Tablas\Usuario::logueado();
     $usuario_id = $usuario ? $usuario->id : null;
 
-    $facturas = Factura::todosConTotal(
+    $facturas = Factura::todosConTotalOferta(
         ['usuario_id = :usuario_id'],
         [':usuario_id' => Usuario::logueado()->id]
     );
@@ -61,7 +61,7 @@ session_start() ?>
                                 <?= hh($created_at->format('d-m-Y H:i:s')) ?>
                             </td>
                             <td class="py-4 px-6">
-                                <?= hh(dinero($factura->getTotal())) ?>
+                                <?= hh(dinero($factura->getTotalOferta()['total'])) ?>
                             </td>
                             <td class="px-6 text-center">
                                 <a href="/factura_pdf.php?id=<?= $factura->id ?>" target="_blank">

@@ -26,8 +26,6 @@ class Articulo extends Modelo
         $this->stock = $campos['stock'];
         $this->categoria_id = $campos['categoria_id'];
         $this->oferta_id = $campos['oferta_id'];
-
-
     }
 
     public static function existe(int $id, ?PDO $pdo = null): bool
@@ -131,4 +129,61 @@ class Articulo extends Modelo
         return $etiqueta_art_id;
     }
 
+    public function aplicarOferta(string $oferta, int $cantidad, float $precioUnidad): array
+    {
+        $importe_original = $cantidad * $precioUnidad;
+        $importe = 0;
+
+        switch ($oferta) {
+            case '2x1':
+                $unidadesCompletas = floor($cantidad / 2);
+                $unidadesIndividuales = $cantidad % 2;
+                $importe = ($precioUnidad * $unidadesCompletas) + ($unidadesIndividuales * $precioUnidad);
+                break;
+            case '50%':
+                $importe = ($importe_original) / 2;
+                break;
+            case '2ª Unidad a mitad de precio':
+                for ($i = 1; $i <= $cantidad; $i++) {
+                    if ($i % 2 !== 0) {
+                        $importe += $precioUnidad;
+                    } else {
+                        $importe += $precioUnidad / 2;
+                    }
+                }
+                break;
+            default:
+                $importe = $importe_original;
+                break;
+        }
+        $ahorro = $importe_original - $importe;
+
+        return ['importe' => $importe, 'ahorro'=>$ahorro];
+    }
+
+    public function aplicarOferta2x1(int $cantidad, float $precio): float
+    {
+        $unidadesCompletas = floor($cantidad / 2);
+        $unidadesIndividuales = $cantidad % 2;
+        $importe = ($precio * $unidadesCompletas) + ($unidadesIndividuales * $precio);
+        return $importe;
+    }
+
+    public function aplicarOferta50Porciento(float $importe_original): float
+    {
+        return $importe_original / 2;
+    }
+
+    public function aplicarOferta2UnidadMitadPrecio(int $cantidad, float $precio): float
+    {
+        $importe = 0;
+        for ($i = 1; $i <= $cantidad; $i++) {
+            if ($i % 2 !== 0) {
+                $importe += $precio;
+            } else {
+                $importe += $precio / 2;
+            }
+        }
+        return $importe;
+    }
 }

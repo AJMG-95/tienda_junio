@@ -37,38 +37,15 @@ foreach ($factura->getLineas($pdo) as $linea) {
     $cantidad = $linea->getCantidad();
     $precio = $articulo->getPrecio();
     $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
-    $importe_original = $cantidad * $precio;
-    $importe = 0;
-    switch ($oferta) {
-        case '2x1':
-            $unidadesCompletas = floor($cantidad / 2);
-            $unidadesIndividuales = $cantidad % 2;
-            $importe = ($precio * $unidadesCompletas) + ($unidadesIndividuales * $precio);
-            break;
-        case '50%':
-            $importe = ($importe_original) / 2;
-            break;
-        case '2ª Unidad a mitad de precio':
-            for ($i = 1; $i <= $cantidad; $i++) {
-                if ($i % 2 !== 0) {
-                    $importe += $precio;
-                } else {
-                    $importe += $precio / 2;
-                }
-            }
-            break;
-        default:
-            $importe = $importe_original;
-            break;
-    }
-    $ahorro = $importe_original - $importe;
+    $importe = $articulo->aplicarOferta($oferta, $cantidad, $precio)['importe'];
+    $ahorro = $articulo->aplicarOferta($oferta, $cantidad, $precio)['ahorro'];
     $total += $importe;
 
     $precio = dinero($precio);
     $importe = dinero($importe);
     $ahorro = dinero($ahorro);
     $total = dinero($total);
-    
+
     $filas_tabla .= <<<EOF
         <tr>
             <td>$codigo</td>
@@ -81,8 +58,6 @@ foreach ($factura->getLineas($pdo) as $linea) {
         </tr>
     EOF;
 }
-
-
 
 $res = <<<EOT
 <p>Factura número: {$factura->id}</p>
