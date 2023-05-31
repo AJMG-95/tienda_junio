@@ -96,7 +96,7 @@ class Factura extends Modelo
             $this->total = $importe;
         }
 
-        return ['total' => $this->total, 'ahorro' => $ahorro];
+        return $this->total;
     }
 
     public static function todosConTotal(
@@ -143,6 +143,7 @@ class Factura extends Modelo
         $sent->execute($execute);
         $filas = $sent->fetchAll(PDO::FETCH_ASSOC);
         $res = [];
+
         foreach ($filas as $fila) {
             $importe_original = $fila['cantidad'] * $fila['precio'];
             $importe = 0;

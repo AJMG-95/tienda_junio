@@ -61,7 +61,7 @@ session_start() ?>
                                 <?= hh($created_at->format('d-m-Y H:i:s')) ?>
                             </td>
                             <td class="py-4 px-6">
-                                <?= hh(dinero($factura->getTotalOferta()['total'])) ?>
+                                <?= hh(dinero($factura->getTotalOferta())) ?>
                             </td>
                             <td class="px-6 text-center">
                                 <a href="/factura_pdf.php?id=<?= $factura->id ?>" target="_blank">
