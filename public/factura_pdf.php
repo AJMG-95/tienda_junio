@@ -36,9 +36,9 @@ foreach ($factura->getLineas($pdo) as $linea) {
     $descripcion = $articulo->getDescripcion();
     $cantidad = $linea->getCantidad();
     $precio = $articulo->getPrecio();
-    $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
-    $importe = $articulo->aplicarOferta($oferta, $cantidad, $precio)['importe'];
-    $ahorro = $articulo->aplicarOferta($oferta, $cantidad, $precio)['ahorro'];
+    $oferta = $articulo->getOferta();
+    $importe = $articulo->aplicarOferta($oferta, $cantidad, $precio);
+    $ahorro = ($precio * $cantidad) - $importe;
     $total += $importe;
 
     $precio = dinero($precio);
@@ -69,8 +69,8 @@ $res = <<<EOT
         <th>Cantidad</th>
         <th>Precio</th>
         <th>Importe</th>
-        <td>Ahorro</td>
-        <td>Oferta</td>
+        <th>Ahorro</th>
+        <th>Oferta</th>
     </tr>
     <tbody>
         $filas_tabla

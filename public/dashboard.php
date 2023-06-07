@@ -25,10 +25,12 @@ session_start() ?>
     $usuario = \App\Tablas\Usuario::logueado();
     $usuario_id = $usuario ? $usuario->id : null;
 
-    $facturas = Factura::todosConTotalOferta(
+    $facturas = Factura::todosConTotalDescuento(
         ['usuario_id = :usuario_id'],
         [':usuario_id' => Usuario::logueado()->id]
     );
+
+  /*   print_r($facturas); */
 
     //modificar para realizar una reclamacion
     ?>
@@ -46,6 +48,7 @@ session_start() ?>
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                     <th scope="col" class="py-3 px-6">Fecha</th>
                     <th scope="col" class="py-3 px-6">Total</th>
+                    <th scope="col" class="py-3 px-6">Ahorro</th>
                     <th scope="col" class="py-3 px-6 text-center">Acciones</th>
                 </thead>
                 <tbody>
@@ -61,7 +64,10 @@ session_start() ?>
                                 <?= hh($created_at->format('d-m-Y H:i:s')) ?>
                             </td>
                             <td class="py-4 px-6">
-                                <?= hh(dinero($factura->getTotalOferta())) ?>
+                                <?= hh(dinero($factura->getTotalDescuento()['total'])) ?>
+                            </td>
+                            <td class="py-4 px-6">
+                                <?= hh(dinero($factura->getTotalDescuento()['ahorro'])) ?>
                             </td>
                             <td class="px-6 text-center">
                                 <a href="/factura_pdf.php?id=<?= $factura->id ?>" target="_blank">

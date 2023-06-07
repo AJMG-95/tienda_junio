@@ -3,7 +3,6 @@
 namespace App\Tablas;
 
 use PDO;
-use App\Tablas\Etiqueta;
 
 class Articulo extends Modelo
 {
@@ -129,38 +128,38 @@ class Articulo extends Modelo
         return $etiqueta_art_id;
     }
 
-    public function aplicarOferta(string $oferta, int $cantidad, float $precioUnidad): array
+    public function aplicarOferta(string $oferta, int $cantidad, float $precio)
     {
-        $importe_original = $cantidad * $precioUnidad;
+        $importe_original = $cantidad * $precio;
         $importe = 0;
 
         switch ($oferta) {
             case '2x1':
                 $unidadesCompletas = floor($cantidad / 2);
                 $unidadesIndividuales = $cantidad % 2;
-                $importe = ($precioUnidad * $unidadesCompletas) + ($unidadesIndividuales * $precioUnidad);
+                $importe += ($precio * $unidadesCompletas) + ($unidadesIndividuales * $precio);
                 break;
             case '50%':
-                $importe = ($importe_original) / 2;
+                $importe += ($importe_original) / 2;
                 break;
             case '2ª Unidad a mitad de precio':
                 for ($i = 1; $i <= $cantidad; $i++) {
                     if ($i % 2 !== 0) {
-                        $importe += $precioUnidad;
+                        $importe += $precio;
                     } else {
-                        $importe += $precioUnidad / 2;
+                        $importe += $precio / 2;
                     }
                 }
                 break;
             default:
-                $importe = $importe_original;
+                $importe += $importe_original;
                 break;
         }
-        $ahorro = $importe_original - $importe;
 
-        return ['importe' => $importe, 'ahorro'=>$ahorro];
+        return  $importe;
     }
 
+    
     public function aplicarOferta2x1(int $cantidad, float $precio): float
     {
         $unidadesCompletas = floor($cantidad / 2);
