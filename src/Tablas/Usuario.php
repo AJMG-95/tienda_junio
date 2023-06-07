@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Tablas;
 
 use PDO;
@@ -10,12 +11,18 @@ class Usuario extends Modelo
     public $id;
     public $usuario;
     public $validado;
+    public $fecha_nacimiento;
+    public $email;
+    public $puntuacion;
 
     public function __construct(array $campos)
     {
         $this->id = $campos['id'];
         $this->usuario = $campos['usuario'];
         $this->validado = $campos['validado'];
+        $this->fecha_nacimiento = $campos['fecha_nacimiento'];
+        $this->email = isset($campos['email']) ? $campos['email'] : null;
+        $this->puntuacion = $campos['puntuacion'];
     }
 
     public function getNombre()
@@ -28,12 +35,36 @@ class Usuario extends Modelo
         return $this->id;
     }
 
+    public function getFechaNacimiento()
+    {
+        return $this->fecha_nacimiento;
+    }
+
+    public function getPuntuacion()
+    {
+        return $this->puntuacion;
+    }
+
+    public function getEmail() {
+        return $this->email;
+    }
+
+    public function setEmail($email, ?PDO $pdo = null) {
+        $pdo = $pdo ?? conectar();
+
+        $sent = $pdo->prepare('INSERT INTO usuarios (email)
+                                VALUES (:email)');
+        $sent->execute([':email' => $email]);
+
+    }
+
     public function es_admin(): bool
     {
         return $this->usuario == 'admin';
     }
 
-    public static function esAdmin($usuario) {
+    public static function esAdmin($usuario)
+    {
         return $usuario == "admin";
     }
 
@@ -68,6 +99,8 @@ class Usuario extends Modelo
 
     public static function existe($login, ?PDO $pdo = null): bool
     {
+        $pdo = $pdo ?? conectar();
+
         return $login == '' ? false :
             !empty(static::todos(
                 ['usuario = :usuario'],
@@ -76,13 +109,17 @@ class Usuario extends Modelo
             ));
     }
 
-    public static function registrar($login, $password, ?PDO $pdo = null)
+    public static function registrar($login, $password, $fechaNacimiento, ?PDO $pdo = null)
     {
-        $sent = $pdo->prepare('INSERT INTO usuarios (usuario, password, validado)
-                               VALUES (:login, :password, false)');
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare('INSERT INTO usuarios (usuario, password, fecha_nacimiento, validado)
+                               VALUES (:login, :password, :fecha_nacimiento, false)');
         $sent->execute([
             ':login' => $login,
             ':password' => password_hash($password, PASSWORD_DEFAULT),
+            ':fecha_nacimiento' => $fechaNacimiento
         ]);
     }
+
+
 }

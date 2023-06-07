@@ -2,7 +2,7 @@
 
 use App\Tablas\Usuario;
 
- session_start() ?>
+session_start() ?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -21,20 +21,21 @@ use App\Tablas\Usuario;
     $login = obtener_post('login');
     $password = obtener_post('password');
     $password_repeat = obtener_post('password_repeat');
+    $fechaNacimiento = obtener_post('fechaNacimiento');
 
     $clases_label = [];
     $clases_input = [];
-    $error = ['login' => [], 'password' => [], 'password_repeat' => []];
+    $error = ['login' => [], 'password' => [], 'password_repeat' => [], 'fechaNacimiento' => []];
 
     $clases_label_error = "text-red-700 dark:text-red-500";
     $clases_input_error = "bg-red-50 border-red-500 text-red-900 placeholder-red-700 focus:ring-red-500 focus:border-red-500 dark:bg-red-100 dark:border-red-400";
 
-    foreach (['login', 'password', 'password_repeat'] as $e) {
+    foreach (['login', 'password', 'password_repeat', 'fechaNacimiento'] as $e) {
         $clases_label[$e] = '';
         $clases_input[$e] = '';
     }
 
-    if (isset($login, $password, $password_repeat)) {
+    if (isset($login, $password, $password_repeat, $fechaNacimiento)) {
         $pdo = conectar();
 
         if ($login == '') {
@@ -77,6 +78,10 @@ use App\Tablas\Usuario;
             $error['password'][] = 'Debe tener al menos 8 caracteres.';
         }
 
+        if( date('Y-m-d', strtotime($fechaNacimiento)) > date('Y-m-d')) {
+            $error['fechaNacimiento'][] = 'La fecha debe ser menor a la fecha actual';
+        }
+
         $vacio = true;
 
         foreach ($error as $err) {
@@ -88,11 +93,11 @@ use App\Tablas\Usuario;
 
         if ($vacio) {
             // Registrar
-            Usuario::registrar($login, $password, $pdo);
+            Usuario::registrar($login, $password, $fechaNacimiento, $pdo);
             $_SESSION['exito'] = 'El usuario se ha registrado correctamente.';
             return redirigir_login();
         } else {
-            foreach (['login', 'password', 'password_repeat'] as $e) {
+            foreach (['login', 'password', 'password_repeat', 'fechaNacimiento'] as $e) {
                 if (isset($error[$e])) {
                     $clases_input[$e] = $clases_input_error;
                     $clases_label[$e] = $clases_label_error;
@@ -108,21 +113,28 @@ use App\Tablas\Usuario;
                 <div class="mb-6">
                     <label for="login" class="block mb-2 text-sm font-medium <?= $clases_label['login'] ?>">Nombre de usuario</label>
                     <input type="text" name="login" id="login" class="border text-sm rounded-lg block w-full p-2.5 <?= $clases_input['login'] ?>" value="<?= hh($login) ?>">
-                    <?php foreach ($error['login'] as $err): ?>
+                    <?php foreach ($error['login'] as $err) : ?>
                         <p class="mt-2 text-sm text-red-600 dark:text-red-500"><span class="font-bold">¡Error!</span> <?= $err ?></p>
                     <?php endforeach ?>
                 </div>
                 <div class="mb-6">
                     <label for="password" class="block mb-2 text-sm font-medium <?= $clases_label['password'] ?>">Contraseña</label>
                     <input type="password" name="password" id="password" class="border text-sm rounded-lg block w-full p-2.5  <?= $clases_input['password'] ?>">
-                    <?php foreach ($error['password'] as $err): ?>
+                    <?php foreach ($error['password'] as $err) : ?>
                         <p class="mt-2 text-sm text-red-600 dark:text-red-500"><span class="font-bold">¡Error!</span> <?= $err ?></p>
                     <?php endforeach ?>
                 </div>
                 <div class="mb-6">
                     <label for="password_repeat" class="block mb-2 text-sm font-medium <?= $clases_label['password_repeat'] ?>">Confirmar contraseña</label>
                     <input type="password" name="password_repeat" id="password_repeat" class="border text-sm rounded-lg block w-full p-2.5  <?= $clases_input['password_repeat'] ?>">
-                    <?php foreach ($error['password_repeat'] as $err): ?>
+                    <?php foreach ($error['password_repeat'] as $err) : ?>
+                        <p class="mt-2 text-sm text-red-600 dark:text-red-500"><span class="font-bold">¡Error!</span> <?= $err ?></p>
+                    <?php endforeach ?>
+                </div>
+                <div class="mb-6">
+                    <label for="fechaNacimiento" class="block mb-2 text-sm font-medium <?= $clases_label['fechaNacimiento'] ?>">Fecha de Nacimiento</label>
+                    <input type="date" name="fechaNacimiento" id="fechaNacimiento" class="border text-sm rounded-lg block w-full p-2.5  <?= $clases_input['fechaNacimiento'] ?>">
+                    <?php foreach ($error['fechaNacimiento'] as $err) : ?>
                         <p class="mt-2 text-sm text-red-600 dark:text-red-500"><span class="font-bold">¡Error!</span> <?= $err ?></p>
                     <?php endforeach ?>
                 </div>

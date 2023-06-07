@@ -102,8 +102,8 @@ session_start() ?>
                         $cantidad = $linea->getCantidad();
                         $precio = $articulo->getPrecio();
                         $oferta = $articulo->getOferta() ? $articulo->getOferta() : '';
-                        $importe = $articulo->aplicarOferta($oferta, $cantidad, $precio)['importe'];
-                        $ahorro = $articulo->aplicarOferta($oferta, $cantidad, $precio)['ahorro'];
+                        $importe = $articulo->aplicarOferta($oferta, $cantidad, $precio);
+                        $ahorro = ($precio * $cantidad) - $importe;
                         $total += $importe;
                         ?>
                         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">

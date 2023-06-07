@@ -27,6 +27,12 @@ session_start() ?>
             const ocultoModificarPasswd = document.getElementById('oculto-mod-passwd');
             ocultoModificarPasswd.setAttribute('value', id);
         }
+
+        function modEmail(el, id) {
+            el.preventDefault();
+            const ocultoModificarEmail = document.getElementById('oculto-mod-email');
+            ocultoModificarEmail.setAttribute('value', id);
+        }
     </script>
 </head>
 
@@ -62,10 +68,13 @@ session_start() ?>
                         <td class="flex items-center mb-4">
                             <img class=" h-14 w-14 ml-1 my-4" src="/img/profile-picture-3.jpg" alt="user photo">
                         </td>
-                    </tr>
-                    <tr>
                         <td>
-                            <p class="mb-2 mx-4"><strong>Nombre:</strong> <?= $usuarioObj->getNombre()?></p>
+                            <p class="mb-2 mx-4"><strong> Puntuación: </strong> <?= $usuarioObj->getPuntuacion() ?></p>
+                        </td>
+                    </tr>
+                    <tr class="m-2 p-2">
+                        <td>
+                            <p class="mb-2 mx-4"><strong>Nombre:</strong> <?= $usuarioObj->getNombre() ?></p>
                         </td>
                         <td>
                             <form action="/editar_nombre.php" method="POST" class="inline">
@@ -74,7 +83,28 @@ session_start() ?>
                             </form>
                         </td>
                     </tr>
-                    <tr>
+                    <tr class="m-2 p-2">
+                        <td>
+                            <p class="mb-2"><strong>Fecha nacimiento: </strong> <?= $usuarioObj->getFechaNacimiento() ?> </p>
+                        </td>
+                        <td>
+                            <p class="mb-2 ml-3"><strong>Edad: </strong> <?= floor((strtotime(date('Y-m-d')) - strtotime($usuarioObj->getFechaNacimiento())) / (365 * 24 * 60 * 60)); ?></p>
+                        </td>
+                    </tr>
+                    <tr class="m-2 p-2">
+                        <td>
+                            <p class="mb-2"><strong>Email: </strong> <?= $usuarioObj->getEmail() ?> </p>
+                        </td>
+                        <td>
+                            <?php if($usuarioObj->getEmail() == null ) :?>
+                            <form action="/editar_email.php" method="POST" class="inline">
+                                <input type="hidden" name="id" value="<?= $usuarioObj->getId() ?>">
+                                <button type="submit" onclick="modEmail(event, <?= $usuarioObj->getId() ?>)" class="focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900" data-modal-toggle="mod-email">Insertar email</button>
+                            </form>
+                            <?php endif ?>
+                        </td>
+                    </tr
+                    <tr class="m-2 p-2">
                         <td>
                             <p class="mb-2"><strong>Contraseña:</strong> ********* </p>
                         </td>
@@ -121,8 +151,8 @@ session_start() ?>
             </div>
         </div>
     </div>
-       <!-- Esto es para modificar el contraseña -->
-       <div id="mod-passwd" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+    <!-- Esto es para modificar el contraseña -->
+    <div id="mod-passwd" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
         <div class="relative p-4 w-full max-w-md h-full md:h-auto">
             <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
                 <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-toggle="mod-passwd">
@@ -137,7 +167,7 @@ session_start() ?>
                     </svg>
                     <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea modificar su contraseña?</h3>
                     <form action="/admin/editar.php" method="POST">
-                    <label for="currentPasswd" class="block mb-2 text-sm font-medium">
+                        <label for="currentPasswd" class="block mb-2 text-sm font-medium">
                             Contraseña actual:
                             <input type="text" name="currentPasswd" id="currentPasswd" class="border text-sm rounded-lg w-full p-2.5">
                         </label>
@@ -154,6 +184,36 @@ session_start() ?>
                             Sí, seguro
                         </button>
                         <button data-modal-toggle="mod-passwd" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Esto es para modificar el Email -->
+    <div id="mod-email" tabindex="-1" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 md:inset-0 h-modal md:h-full">
+        <div class="relative p-4 w-full max-w-md h-full md:h-auto">
+            <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+                <button type="button" class="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-800 dark:hover:text-white" data-modal-toggle="mod-email">
+                    <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="sr-only">Cerrar ventana</span>
+                </button>
+                <div class="p-6 text-center">
+                    <svg aria-hidden="true" class="mx-auto mb-4 w-14 h-14 text-gray-400 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">¿Seguro que desea modificar su contraseña?</h3>
+                    <form action="/admin/editar.php" method="POST">
+                        <label for="currentPasswd" class="block mb-2 text-sm font-medium">
+                            Email:
+                            <input type="text" name="currentPasswd" id="currentPasswd" class="border text-sm rounded-lg w-full p-2.5">
+                        </label>
+                        <input id="oculto-mod-email" type="hidden" name="id">
+                        <button data-modal-toggle="mod-email" type="submit" class="text-white bg-red-600 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center mr-2">
+                            Sí, seguro
+                        </button>
+                        <button data-modal-toggle="mod-email" type="button" class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600">No, cancelar</button>
                     </form>
                 </div>
             </div>

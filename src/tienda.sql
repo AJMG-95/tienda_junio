@@ -51,10 +51,13 @@ CREATE TABLE comentarios (
 
 DROP TABLE IF EXISTS usuarios CASCADE;
 CREATE TABLE usuarios (
-    id       bigserial    PRIMARY KEY,
-    usuario  varchar(255) NOT NULL UNIQUE,
-    password varchar(255) NOT NULL,
-    validado boolean      NOT NULL
+    id                  bigserial    PRIMARY KEY,
+    usuario             varchar(255) NOT NULL UNIQUE,
+    fecha_nacimiento    date         NOT NULL,
+    email               varchar(255),
+    password            varchar(255) NOT NULL,
+    validado            boolean      NOT NULL,
+    puntuacion          int          DEFAULT 0
 );
 
 DROP TABLE IF EXISTS facturas CASCADE;
@@ -99,10 +102,10 @@ INSERT INTO articulos (codigo, descripcion, precio, stock, categoria_id, oferta_
            ('83745228673', 'Chandal', 30.10, 15, 3, 2),
            ('51786198495', 'Traje', 250.30, 1, 3, NULL);
 
-INSERT INTO usuarios (usuario, password, validado)
-    VALUES ('admin', crypt('admin', gen_salt('bf', 10)), true),
-           ('pepe', crypt('pepe', gen_salt('bf', 10)), true),
-           ('juan', crypt('juan', gen_salt('bf', 10)), false);
+INSERT INTO usuarios (usuario, password, validado, fecha_nacimiento)
+    VALUES ('admin', crypt('admin', gen_salt('bf', 10)), true,  '1985-01-01'),
+           ('pepe', crypt('pepe', gen_salt('bf', 10)), true,  '1965-01-01'),
+           ('juan', crypt('juan', gen_salt('bf', 10)), false,  '1990-01-01');
 
 INSERT INTO categorias (categoria)
     VALUES ('Electrónica'),
