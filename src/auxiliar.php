@@ -94,34 +94,7 @@ function volver_dashboard()
     volver_a('Location: /dashboard.php');
 }
 
-function ofertaFactura(string $oferta, int $cantidad, float $precioUnidad): array
-    {
-        $importe_original = $cantidad * $precioUnidad;
-        $importe = 0;
-
-        switch ($oferta) {
-            case '2x1':
-                $unidadesCompletas = floor($cantidad / 2);
-                $unidadesIndividuales = $cantidad % 2;
-                $importe = ($precioUnidad * $unidadesCompletas) + ($unidadesIndividuales * $precioUnidad);
-                break;
-            case '50%':
-                $importe = ($importe_original) / 2;
-                break;
-            case '2ª Unidad a mitad de precio':
-                for ($i = 1; $i <= $cantidad; $i++) {
-                    if ($i % 2 !== 0) {
-                        $importe += $precioUnidad;
-                    } else {
-                        $importe += $precioUnidad / 2;
-                    }
-                }
-                break;
-            default:
-                $importe = $importe_original;
-                break;
-        }
-        $ahorro = $importe_original - $importe;
-
-        return ['importe' => $importe, 'ahorro' => $ahorro];
-    }
+function volver_perfil()
+{
+    volver_a('Location: /perfil.php');
+}
