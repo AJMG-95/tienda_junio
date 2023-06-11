@@ -19,32 +19,30 @@ try {
     // Verificar si se proporcionó un email 
     if (isset($email) && !empty($email)) {
 
-        //Comprovar que el email tiene forma de email (email correcto)
+        //Comprovar que el email tiene el formato correcto (pregmatch)
+        $pattern = "/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/";
+        
+        if (preg_match($pattern, $email)) {
+            $sent = $pdo->prepare("SELECT email FROM usuarios WHERE id = :id");
+            $sent->execute([':id' => $id]);
+            $emailActual = $sent->fetchColumn();
 
-        //if email correcto
-        $sent = $pdo->prepare("SELECT COUNT(*) FROM usuarios WHERE id = :id");
-        $sent->execute([':email' => $email, ':id' => $id]);
-        $existe = $sent->fetchColumn();
+            $sent = $pdo->prepare("UPDATE usuarios SET email = :email WHERE id = :id");
+            $sent->execute([':email' => $email, ':id' => $id]);
 
-        if ($existe > 0) {
-            // Update al email 
-            $_SESSION['exito'] = 'El email de usuario se ha modificado correctamente.';
+            $emailActual ?  $_SESSION['exito'] = 'El email de usuario se ha modificado correctamente.'
+                        :  $_SESSION['exito'] = 'El email de usuario se ha insertado correctamente.';
+
         } else {
-            // insert del emaul
-            $_SESSION['exito'] = 'El email de usuario se ha insertado correctamente.';
+            $_SESSION['error'] = 'El email no tiene un formato correcto.';
         }
-
-        // else email correcto
-
-        //error de sesion
-
-        // endif email correcto
 
     } else {
         $_SESSION['error'] = 'Debe rellenar todos los campos del formulario.';
     }
 } catch (\Throwable $th) {
     $_SESSION['error'] = 'Ha ocurrido un error en el servidor.';
+
 }
 
 volver_perfil();
