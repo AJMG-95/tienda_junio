@@ -195,7 +195,7 @@ session_start() ?>
                                     <select name="valoracion" id="valoracion">
                                         <option value="" <?= (!$usuario_id) ? 'selected' : '' ?>></option>
                                         <?php for ($i = 1; $i <= 5; $i++) : ?>
-                                            <option value="<?= $i ?>" <?= ($valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
+                                            <option value="<?= $i ?>" <?= isset($valoracion_usuario['valoracion']) && ($valoracion_usuario['valoracion'] == $i) ? 'selected' : '' ?>><?= $i ?></option>
                                         <?php endfor ?>
                                     </select>
                                 </label>
