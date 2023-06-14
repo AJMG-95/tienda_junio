@@ -45,17 +45,46 @@ class Usuario extends Modelo
         return $this->puntuacion;
     }
 
-    public function getEmail() {
+    public function decreasePuntuacion($subtotal, $puntos, ?PDO $pdo = null)
+    {
+        $total = $subtotal - $puntos;
+        
+        if ($total <= 0.00) {
+            $puntos = $puntos - $subtotal;
+            $total = 0.00;
+        } else {
+            $puntos = 0;
+        }
+        
+        $pdo = $pdo ?? conectar();
+        $sent = $pdo->prepare("UPDATE usuarios
+                                    SET puntuacion = :puntos
+                                    WHERE id = :id");
+        $sent->execute([':puntos' => $puntos, ':id' =>  $this->id]);
+    }
+
+    public function increasePuntuacion($total, $proporcion, ?PDO $pdo = null)
+    {
+        $pdo = $pdo ?? conectar();
+        $this->puntuacion = floor(($total * $proporcion) + $this->puntuacion);
+        $sent = $pdo->prepare("UPDATE usuarios
+                                SET puntuacion = :puntos
+                                WHERE id = :id");
+        $sent->execute([':puntos' => $this->puntuacion, ':id' => $this->id]);
+    }
+
+    public function getEmail()
+    {
         return $this->email;
     }
 
-    public function setEmail($email, ?PDO $pdo = null) {
+    public function setEmail($email, ?PDO $pdo = null)
+    {
         $pdo = $pdo ?? conectar();
 
         $sent = $pdo->prepare('INSERT INTO usuarios (email)
                                 VALUES (:email)');
         $sent->execute([':email' => $email]);
-
     }
 
     public function es_admin(): bool
@@ -120,6 +149,4 @@ class Usuario extends Modelo
             ':fecha_nacimiento' => $fechaNacimiento
         ]);
     }
-
-
 }

@@ -98,3 +98,8 @@ function volver_perfil()
 {
     volver_a('Location: /perfil.php');
 }
+
+function volver_comprar()
+{
+    volver_a('Location: /comprar.php');
+}
